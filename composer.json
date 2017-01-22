@@ -1,0 +1,16 @@
+{
+    "name": "rozbehsharahi/lazer-rest-api",
+    "description": "Super Quick Setup of a PHP-REST-API without the user of MySQL, Apache, ...",
+    "type": "composer-plugin",
+    "require": {
+        "slim/slim": "^3.7",
+        "greg0/lazer-database": "^1.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rozbeh Chiryai Sharahi",
+            "email": "rozbeh.sharahi@primeit.eu"
+        }
+    ]
+}
