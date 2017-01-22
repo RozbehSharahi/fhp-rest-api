@@ -1,10 +1,11 @@
 {
     "name": "rozbehsharahi/lazer-rest-api",
-    "description": "Super Quick Setup of a PHP-REST-API without the user of MySQL, Apache, ...",
+    "description": "Super quick setup of a PHP-REST-API without the use of MySQL, Apache, ...",
     "type": "composer-plugin",
     "require": {
         "slim/slim": "^3.7",
-        "greg0/lazer-database": "^1.1"
+        "greg0/lazer-database": "^1.1",
+        "icanboogie/inflector": "^1.4"
     },
     "license": "MIT",
     "authors": [
@@ -12,5 +13,10 @@
             "name": "Rozbeh Chiryai Sharahi",
             "email": "rozbeh.sharahi@primeit.eu"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": {
+            "LazerRest\\": "src/"
+        }
+    }
 }
