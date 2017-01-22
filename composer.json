@@ -1,7 +1,7 @@
 {
     "name": "rozbehsharahi/lazer-rest-api",
     "description": "Super quick setup of a PHP-REST-API without the use of MySQL, Apache, ...",
-    "type": "composer-plugin",
+    "homepage": "http://github.com/RozbehSharahi/lazer-rest-api",
     "require": {
         "slim/slim": "^3.7",
         "greg0/lazer-database": "^1.1",
