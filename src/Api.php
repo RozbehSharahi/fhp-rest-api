@@ -29,11 +29,23 @@ class Api
     protected $inflector;
 
     /**
+     * Api constructor.
+     *
      * @param App $app
+     * @throws \Exception
      */
     public function __construct(App $app)
     {
         header('Content-Type: application/json');
+
+        // Create database directory if needed
+        if (defined('LAZER_DATA_PATH')) {
+            if (!is_dir(LAZER_DATA_PATH) && !is_file(LAZER_DATA_PATH)) {
+                mkdir(LAZER_DATA_PATH);
+            }
+        } else {
+            throw new \Exception('LAZER_DATA_PATH is not defined');
+        }
 
         $this->app = $app;
         $this->inflector = Inflector::get();
