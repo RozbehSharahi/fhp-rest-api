@@ -113,8 +113,7 @@ $api->setHeaders([
 ]);
 ```
 
-## Todos and Issues
+## Todos and issues
 
-* PHP5.6 fails at the moment. In PHP5.6 request content is empty after being read once. Due to
- bad architecture of Lazer-REST-API payload is empty at the moment the Controllers are called.
- The next release will integrate `\Slim\Http\Request` to have the payload available.
+* Better types handling
+* Refactoring
