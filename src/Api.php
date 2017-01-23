@@ -5,13 +5,21 @@ namespace LazerRest;
 use ICanBoogie\Inflector;
 use Lazer\Classes\Database;
 use Lazer\Classes\Helpers\Validate;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
-use Slim\Http\Headers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
 /**
  * Class LazerRest\Api
+ *
+ * Api class is a wrapper for slim. Instead of defining routes
+ * you define models. Routes will be generated automatically.
+ *
+ * It also handles the creation of Lazer-Databases for your models.
+ *
+ * Feel free to extend from this class and change functionallities.
  *
  * @package LazerRest
  */
@@ -37,7 +45,7 @@ class Api
      *
      * @var array
      */
-    protected $defaultHeaders = [
+    protected $headers = [
         'Content-Type' => 'application/json',
         'Access-Control-Allow-Origin' => '*',
         'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, Accept, Origin, Authorization',
@@ -56,10 +64,8 @@ class Api
         $this->app = $app;
         $this->inflector = Inflector::get();
         $this->fileManager = new FileManager();
-
-        // Merge configured headers with defaultHeaders
-        $this->defaultHeaders = !empty($config['defaultHeaders']) ? array_replace_recursive($this->defaultHeaders,
-            $config['defaultHeaders']) : $this->defaultHeaders;
+        $this->headers = !empty($config['headers']) ? array_replace_recursive($this->headers,
+            $config['headers']) : $this->headers;
 
         // Create database directory
         $this->fileManager->createDirectory(LAZER_DATA_PATH);
@@ -71,62 +77,131 @@ class Api
      * @param string $modelName
      * @param array $modelConfig
      * @param string $controllerName
+     * @return $this
      */
     public function createModel($modelName, $modelConfig, $controllerName = DefaultController::class)
     {
         $modelName = $this->inflector->hyphenate($modelName);
-
-        // Create or replace table
-        $this->createOrReplaceTable($modelName, $modelConfig);
-
-        // Create route
-        $this->createRoutes($modelName, $modelConfig, $controllerName);
+        return $this
+            ->createOrReplaceTable($modelName, $modelConfig)
+            ->createRoutes($modelName, $modelConfig, $controllerName);
     }
 
     /**
      * Create or replace a Lazer table
      *
-     * @param $modelName
-     * @param $config
+     * @param string $modelName
+     * @param array $modelConfig
+     * @return $this
      */
-    public function createOrReplaceTable($modelName, $config)
+    public function createOrReplaceTable($modelName, $modelConfig)
     {
         try {
             Validate::table($modelName)->exists();
         } catch (\Exception $e) {
-            Database::create($modelName, $config);
+            Database::create($modelName, $modelConfig);
         }
+        return $this;
+    }
+
+    /**
+     * Assign headers to app
+     *
+     * @return $this
+     */
+    protected function assignHeaders()
+    {
+        $headers = $this->headers;
+        $this->app->add(function (Request $request, Response $response, $next) use ($headers) {
+            /** @var Response $response */
+            $response = $next($request, $response);
+            foreach ($headers as $headerName => $headerValue) {
+                $response = $response->withHeader($headerName, $headerValue);
+            }
+            return $response;
+        });
+        return $this;
+    }
+
+    /**
+     * Assign error handling to app
+     *
+     * @return $this
+     */
+    protected function assignErrorHandling()
+    {
+        $this->app->getContainer()['errorHandler'] = function ($c) {
+            return function () use ($c) {
+                $exception = func_get_arg(2);
+                return $c['response']->withStatus(500)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withJson(["type" => "error", "message" => $exception->getMessage()], null, JSON_PRETTY_PRINT);
+            };
+        };
+        return $this;
     }
 
     /**
      * @param string $modelName
      * @param array $modelConfig
      * @param string $controllerName
+     * @return $this
      */
-    public function createRoutes($modelName, $modelConfig, $controllerName)
+    public function createRoutes($modelName, $modelConfig, $controllerName = DefaultController::class)
+    {
+        return $this
+            ->assignHeaders()
+            ->assignErrorHandling()
+            ->createIndexRoute($modelName, $modelConfig, $controllerName)
+            ->createShowRoute($modelName, $modelConfig, $controllerName)
+            ->createUpdateRoute($modelName, $modelConfig, $controllerName)
+            ->createCreateRoute($modelName, $modelConfig, $controllerName)
+            ->createDeleteRoute($modelName, $modelConfig, $controllerName);
+    }
+
+    /**
+     * /modelName (GET)
+     *
+     * @param $modelName
+     * @param $modelConfig
+     * @param $controllerName
+     * @return $this
+     */
+    public function createIndexRoute($modelName, $modelConfig, $controllerName)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
+        $this->app->get($modelPath, function () use ($modelName, $modelConfig, $controllerName) {
+            /** @var Response $response */
+            $response = func_get_arg(1);
 
-        // Default configs for response
-        $this->setDefaultHeaders();
+            /** @var DefaultController $controller at least instance of */
+            $controller = new $controllerName([
+                'modelName' => $modelName,
+                'modelConfig' => $modelConfig
+            ]);
 
-        // The index path
-        $this->app->get($modelPath,
-            function (Request $request, Response $response) use ($modelName, $modelConfig, $controllerName) {
+            return $response
+                ->withJson($controller->indexAction(), null, JSON_PRETTY_PRINT);
+        });
+        return $this;
+    }
 
-                /** @var DefaultController $controller */
-                $controller = new $controllerName([
-                    'modelName' => $modelName,
-                    'modelConfig' => $modelConfig
-                ]);
-
-                return $response
-                    ->withJson($controller->indexAction(), null, JSON_PRETTY_PRINT);
-            });
-
-        // The single path
+    /**
+     * /modelName/id (GET)
+     *
+     * @param $modelName
+     * @param $modelConfig
+     * @param $controllerName
+     * @return $this
+     */
+    public function createShowRoute($modelName, $modelConfig, $controllerName)
+    {
+        $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->get($modelPath . '/{id}',
-            function (Request $request, Response $response, $args) use ($modelName, $modelConfig, $controllerName) {
+            function () use ($modelName, $modelConfig, $controllerName) {
+                /** @var Response $response */
+                $response = func_get_arg(1);
+                $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
@@ -137,10 +212,25 @@ class Api
                 return $response
                     ->withJson($controller->showAction($args['id']), null, JSON_PRETTY_PRINT);
             });
+        return $this;
+    }
 
-        // The update path
+    /**
+     * /modelName/id (PUT)
+     *
+     * @param $modelName
+     * @param $modelConfig
+     * @param $controllerName
+     * @return $this
+     */
+    public function createUpdateRoute($modelName, $modelConfig, $controllerName)
+    {
+        $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->put($modelPath . '/{id}',
-            function (Request $request, Response $response, $args) use ($modelName, $modelConfig, $controllerName) {
+            function () use ($modelName, $modelConfig, $controllerName) {
+                /** @var Response $response */
+                $response = func_get_arg(1);
+                $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
@@ -151,10 +241,24 @@ class Api
                 return $response
                     ->withJson($controller->updateAction($args['id']), null, JSON_PRETTY_PRINT);
             });
+        return $this;
+    }
 
-        // The create path
+    /**
+     * /modelName (POST)
+     *
+     * @param $modelName
+     * @param $modelConfig
+     * @param $controllerName
+     * @return $this
+     */
+    public function createCreateRoute($modelName, $modelConfig, $controllerName)
+    {
+        $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->post($modelPath,
-            function (Request $request, Response $response) use ($modelName, $modelConfig, $controllerName) {
+            function () use ($modelName, $modelConfig, $controllerName) {
+                /** @var Response $response */
+                $response = func_get_arg(1);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
@@ -165,10 +269,25 @@ class Api
                 return $response
                     ->withJson($controller->createAction(), null, JSON_PRETTY_PRINT);
             });
+        return $this;
+    }
 
-        // The delete path
+    /**
+     * /modelName/id (DELETE)
+     *
+     * @param $modelName
+     * @param $modelConfig
+     * @param $controllerName
+     * @return $this
+     */
+    public function createDeleteRoute($modelName, $modelConfig, $controllerName)
+    {
+        $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->delete($modelPath . '/{id}',
-            function (Request $request, Response $response, $args) use ($modelName, $modelConfig, $controllerName) {
+            function () use ($modelName, $modelConfig, $controllerName) {
+                /** @var Response $response */
+                $response = func_get_arg(1);
+                $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
@@ -179,49 +298,44 @@ class Api
                 return $response
                     ->withJson($controller->deleteAction($args['id']), null, JSON_PRETTY_PRINT);
             });
+        return $this;
     }
 
     /**
-     * Set default headers for response
+     * Forward process to app
      *
-     * return void
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
      */
-    public function setDefaultHeaders()
+    public function process(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $defaultHeaders = $this->defaultHeaders;
-
-        $this->app->add(function (Request $request, Response $response, $next) use ($defaultHeaders) {
-
-            /** @var Response $response */
-            $response = $next($request, $response);
-
-            // Set headers
-            foreach ($defaultHeaders as $headerName => $headerValue) {
-                $response = $response->withHeader($headerName, $headerValue);
-            }
-
-            // Return final response
-            return $response;
-        });
+        $this->app->process($request, $response);
     }
 
     /**
-     * Just start $slim->run :)
+     * Forward run to app
      *
-     * @codeCoverageIgnore
+     * @param boolean $silent
+     * @return Response|void
      */
-    public function run()
+    public function run($silent = false)
     {
-        $c = $this->app->getContainer();
+        return $this->app->run($silent);
+    }
 
-        $c['errorHandler'] = function ($c) {
-            return function (Request $request, Response $response,  $exception) use ($c) {
-                return $c['response']->withStatus(500)
-                    ->withHeader('Content-Type', 'application/json')
-                    ->withJson(["type" => "error", "message" => $exception->getMessage()], null, JSON_PRETTY_PRINT);
-            };
-        };
+    /**
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
 
-        $this->app->run();
+    /**
+     * @param array $headers
+     */
+    public function setHeaders($headers)
+    {
+        $this->headers = $headers;
     }
 }
