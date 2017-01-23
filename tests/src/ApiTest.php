@@ -116,8 +116,6 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $response = $api->run(true);
         $this->assertArrayHasKey('test-header', $response->getHeaders());
         $this->assertArrayHasKey('test-header', $api->getHeaders());
-
-        $this->assertEquals(true,false);
     }
 
     /**

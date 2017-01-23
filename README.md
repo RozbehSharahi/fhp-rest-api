@@ -8,9 +8,8 @@ Lazer-REST-API was inspired by the project `greg0/lazer-database`, which
 
 ## What is does
 
-With `rozbehsharahi/lazer-rest-api` you can setup a super easy REST-API
-that saves all data in JSON files and does not need any set up of
-any databases.
+With `rozbehsharahi/lazer-rest-api` you can setup a simple REST-API
+that saves everything in JSON files and has no need for databases.
 
 ## Installation
 
