@@ -2,8 +2,8 @@
 
 ## Inspiration
 
-Lazer-REST-API was inspired by the project `greg0/lazer-database`, which
- is a PHP library that provides using JSON files
+Lazer-REST-API was inspired by the project `greg0/lazer-database` which
+ is a PHP library that provides the use of JSON files
  as a database.
 
 ## What is does
@@ -38,16 +38,15 @@ $api->createModel('post', [ // <-- Please use singular here
 ]);
 
 $api->run();
-
 ```
 
 ### Defining custom model-controllers
 
-You may also define your own controller for the models. Just pass
-the class name as third parameter to `$api->createModel`.
+You may also define your own controllers to handle model-requests. Just pass
+your controller's class name as the third parameter to `$api->createModel`.
 
-Please extend from `LazerRest\Controller\DefaultController` and
- then feel free to override the basic functions:
+Please extend `LazerRest\DefaultController` and
+ feel free to override the basic actions:
 
  * `public function indexAction() {}`
  * `public function showAction($id) {}`
@@ -58,19 +57,19 @@ Please extend from `LazerRest\Controller\DefaultController` and
 by calling `$api->createModel` like following:
 
 ```php
-$api->createModel('post', [ // <-- Please use singular here
+$api->createModel('post', [
     'title' => 'string',
     'content' => 'string',
     'edited' => 'integer',
-], \My\Own\PostController::class);
+], \My\Own\PostController::class); <-- your class name here
 ```
 
 ## Super fast start without Apache
 
-No apache, No MySQL, just make sure PHP is installed on your mashine.
+No apache, No MySQL, just make sure PHP is installed on your machine.
 
-Since Lazer REST API is super independent you may start a server
- on almost any mashine that support PHP7. Not even Apache is
+Since Lazer-REST-API is super independent you may start your server
+ on almost any machine that supports PHP7+ (in future also PHP5.6+). Not even Apache is
  needed to get it started. Just change your directory to the projects root and go on with:
 
 ```shell
@@ -79,9 +78,9 @@ php -S localhost:8000
 
 ## Start with Apache
 
-In case you want to start the REST API with Apache you will
-need to add an `.htaccess` file to the projects root where your
-`index.php` is defined.
+In case you want to start Lazer-REST-API on an apache server, please add
+the following `.htaccess` file to your project's root where
+`index.php` is located.
 
 ```htaccess
 RewriteEngine On
@@ -90,28 +89,28 @@ RewriteRule ^ index.php [QSA,L]
 ```
 
 ## Security issues / CORS
-`lazer-rest-api` has a set of default headers defined in `LazerRest\Api`
-that also contain `'Access-Control-Allow-Origin' => '*'`. This is
-a security issue. Please make sure to configure your own header settings
-when going to production.
+Lazer-REST-API has a set of default-headers that are defined in `LazerRest\Api`.
+ These headers also contain `'Access-Control-Allow-Origin' => '*'` which is
+ a security issue depending on the project.
 
-You may set your headers inside the constructor parameters:
+Please make sure to configure your own header-settings
+when going to production. You may set those inside your constructor parameters:
 
 ```php
 $api = new Api(new App, [
-    'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
+    'headers' => [
+        'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
+    ]
 ]);
 ```
 
-You may also set your headers using the setter:
+You may also use the setter:
 
 ```php
-$api = new Api(new App);
 $api->setHeaders([
     'Content-Type' => 'application/json',
     'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
 ]);
-
 ```
 
 ## Todos and Issues
