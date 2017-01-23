@@ -54,9 +54,7 @@ class Controller
         $this->payload = !empty($config['payload']) ? $config['payload'] : $this->getPayload();
 
         // Asserts
-        if (empty($this->modelName)) {
-            throw new \Exception('ModelName must not be null for ' . __METHOD__);
-        }
+        $this->assert('ModelName must not be empty in ' . __METHOD__, !empty($this->modelName));
     }
 
     /**
@@ -91,6 +89,8 @@ class Controller
      */
     public function createAction()
     {
+        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($this->getPayload()[$this->nodeName]));
+
         $model = $this->database->createQuery()
             ->set($this->getPayload()[$this->nodeName])
             ->set('edited', time());
@@ -105,6 +105,8 @@ class Controller
      */
     public function updateAction($id)
     {
+        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($this->getPayload()[$this->nodeName]));
+
         $model = $this->database->createQuery()
             ->find($id)
             ->set($this->getPayload()[$this->nodeName])
@@ -125,6 +127,20 @@ class Controller
             ->delete();
 
         return ['message' => $this->modelName . ' with id=' . $id . ' has been deleted'];
+    }
+
+    /**
+     * Assert function
+     *
+     * @param string $message
+     * @param bool $condition
+     * @throws \Exception
+     */
+    protected function assert($message, $condition)
+    {
+        if (!$condition) {
+            throw new \Exception($message);
+        }
     }
 
     /**
