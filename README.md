@@ -3,7 +3,7 @@
 ## Inspiration
 
 Lazer-REST-API was inspired by the project `greg0/lazer-database`, which
- is PHP library that provides using JSON files
+ is a PHP library that provides using JSON files
  as a database.
 
 ## What is does
