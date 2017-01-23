@@ -1,7 +1,4 @@
-# Lazer REST API
-
-Master [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/lazer-rest-api)
-| v1.0.0 [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=v1.0.0)](https://travis-ci.org/RozbehSharahi/lazer-rest-api)
+# Lazer REST API [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=v1.0.0)](https://travis-ci.org/RozbehSharahi/lazer-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/lazer-rest-api))
 
 ## Inspiration
 
