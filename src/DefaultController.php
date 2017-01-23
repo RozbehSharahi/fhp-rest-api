@@ -5,6 +5,7 @@ namespace LazerRest;
 use ICanBoogie\Inflector;
 use Lazer\Classes\Core_Database;
 use Lazer\Classes\Database;
+use Slim\Http\Request;
 
 /**
  * Class LazerRest\DefaultController
@@ -37,6 +38,11 @@ class DefaultController
     protected $payload;
 
     /**
+     * @var Request
+     */
+    protected $request;
+
+    /**
      * DefaultController constructor.
      *
      * @param array $config
@@ -48,6 +54,7 @@ class DefaultController
         $this->modelName = !empty($config['modelName']) ? $config['modelName'] : $this->modelName;
         $this->payload = !empty($config['payload']) ? $config['payload'] : json_decode(file_get_contents('php://input'), true);
         $this->nodeName = !empty($config['nodeName']) ? $config['nodeName'] : lcfirst($this->inflector->camelize($this->modelName));
+        $this->request = !empty($config['request']) ? $config['request'] : null;
 
         // Asserts
         if (empty($this->modelName)) {

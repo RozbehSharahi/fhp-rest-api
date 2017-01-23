@@ -173,13 +173,17 @@ class Api
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->get($modelPath, function () use ($modelName, $modelConfig, $controllerName) {
+
+            /** @var Request $request */
+            $request = func_get_arg(0);
             /** @var Response $response */
             $response = func_get_arg(1);
 
             /** @var DefaultController $controller at least instance of */
             $controller = new $controllerName([
                 'modelName' => $modelName,
-                'modelConfig' => $modelConfig
+                'modelConfig' => $modelConfig,
+                'request' => $request,
             ]);
 
             return $response
@@ -201,14 +205,19 @@ class Api
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->get($modelPath . '/{id}',
             function () use ($modelName, $modelConfig, $controllerName) {
+
+                /** @var Request $request */
+                $request = func_get_arg(0);
                 /** @var Response $response */
                 $response = func_get_arg(1);
+                /** @var array $args */
                 $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
-                    'modelConfig' => $modelConfig
+                    'modelConfig' => $modelConfig,
+                    'request' => $request,
                 ]);
 
                 return $response
@@ -230,14 +239,19 @@ class Api
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->put($modelPath . '/{id}',
             function () use ($modelName, $modelConfig, $controllerName) {
+
+                /** @var Request $request */
+                $request = func_get_arg(0);
                 /** @var Response $response */
                 $response = func_get_arg(1);
+                /** @var array $args */
                 $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
-                    'modelConfig' => $modelConfig
+                    'modelConfig' => $modelConfig,
+                    'request' => $request,
                 ]);
 
                 return $response
@@ -259,13 +273,17 @@ class Api
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->post($modelPath,
             function () use ($modelName, $modelConfig, $controllerName) {
+
+                /** @var Request $request */
+                $request = func_get_arg(0);
                 /** @var Response $response */
                 $response = func_get_arg(1);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
-                    'modelConfig' => $modelConfig
+                    'modelConfig' => $modelConfig,
+                    'request' => $request,
                 ]);
 
                 return $response
@@ -287,14 +305,19 @@ class Api
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
         $this->app->delete($modelPath . '/{id}',
             function () use ($modelName, $modelConfig, $controllerName) {
+
+                /** @var Request $request */
+                $request = func_get_arg(0);
                 /** @var Response $response */
                 $response = func_get_arg(1);
+                /** @var array $args */
                 $args = func_get_arg(2);
 
                 /** @var DefaultController $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
-                    'modelConfig' => $modelConfig
+                    'modelConfig' => $modelConfig,
+                    'request' => $request,
                 ]);
 
                 return $response
