@@ -1,8 +1,7 @@
 <?php
-namespace Lazer\Classes;
 
 use LazerRest\Api;
-use LazerRest\Controller\DefaultController;
+use LazerRest\DefaultController;
 use Slim\App;
 
 class DefaultControllerTest extends \PHPUnit_Framework_TestCase
@@ -17,7 +16,12 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-
+        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.data.json');
+        }
+        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.config.json');
+        }
     }
 
     /**
@@ -51,8 +55,6 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testShowAction()
     {
-        unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        unlink(LAZER_DATA_PATH . '/test-model.config.json');
 
         $api = new Api(new App());
 
@@ -82,8 +84,6 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateAction()
     {
-        unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        unlink(LAZER_DATA_PATH . '/test-model.config.json');
 
         $api = new Api(new App());
 
@@ -120,7 +120,20 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
 
         $controller->deleteAction(1);
 
-        $this->assertEquals(count($controller->indexAction()['testModels']),0);
+        $this->assertEquals(count($controller->indexAction()['testModels']), 0);
+    }
+
+    /**
+     * Teardown the database
+     */
+    public function tearDown()
+    {
+        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.data.json');
+        }
+        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.config.json');
+        }
     }
 
 }

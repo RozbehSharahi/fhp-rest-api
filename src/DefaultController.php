@@ -1,13 +1,13 @@
 <?php
 
-namespace LazerRest\Controller;
+namespace LazerRest;
 
 use ICanBoogie\Inflector;
 use Lazer\Classes\Core_Database;
 use Lazer\Classes\Database;
 
 /**
- * Class LazerRest\Controller\DefaultController
+ * Class LazerRest\DefaultController
  *
  * The default controller to be called if no specific controller exists for the model
  *

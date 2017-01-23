@@ -5,7 +5,6 @@ namespace LazerRest;
 use ICanBoogie\Inflector;
 use Lazer\Classes\Database;
 use Lazer\Classes\Helpers\Validate;
-use LazerRest\Controller\DefaultController;
 use Slim\App;
 use Slim\Http\Headers;
 use Slim\Http\Request;
@@ -29,26 +28,41 @@ class Api
     protected $inflector;
 
     /**
+     * @var FileManager
+     */
+    protected $fileManager;
+
+    /**
+     * Default headers that may be overwritten
+     *
+     * @var array
+     */
+    protected $defaultHeaders = [
+        'Content-Type' => 'application/json',
+        'Access-Control-Allow-Origin' => '*',
+        'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, Accept, Origin, Authorization',
+        'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS'
+    ];
+
+    /**
      * Api constructor.
      *
      * @param App $app
+     * @param array $config
      * @throws \Exception
      */
-    public function __construct($app)
+    public function __construct($app, $config = null)
     {
-        // Create database directory if needed
-        if (defined('LAZER_DATA_PATH')) {
-            if (!is_dir(LAZER_DATA_PATH) && !is_file(LAZER_DATA_PATH)) {
-                mkdir(LAZER_DATA_PATH);
-            }
-        } else {
-            //@codeCoverageIgnoreStart
-            throw new \Exception('LAZER_DATA_PATH is not defined');
-            //@codeCoverageIgnoreEnd
-        }
-
         $this->app = $app;
         $this->inflector = Inflector::get();
+        $this->fileManager = new FileManager();
+
+        // Merge configured headers with defaultHeaders
+        $this->defaultHeaders = !empty($config['defaultHeaders']) ? array_replace_recursive($this->defaultHeaders,
+            $config['defaultHeaders']) : $this->defaultHeaders;
+
+        // Create database directory
+        $this->fileManager->createDirectory(LAZER_DATA_PATH);
     }
 
     /**
@@ -58,7 +72,7 @@ class Api
      * @param array $modelConfig
      * @param string $controllerName
      */
-    public function createModel($modelName, $modelConfig, $controllerName = 'LazerRest\\Controller\\DefaultController')
+    public function createModel($modelName, $modelConfig, $controllerName = DefaultController::class)
     {
         $modelName = $this->inflector->hyphenate($modelName);
 
@@ -93,6 +107,9 @@ class Api
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
 
+        // Default configs for response
+        $this->setDefaultHeaders();
+
         // The index path
         $this->app->get($modelPath,
             function (Request $request, Response $response) use ($modelName, $modelConfig, $controllerName) {
@@ -104,7 +121,6 @@ class Api
                 ]);
 
                 return $response
-                    ->withHeader('Content-Type', 'application/json')
                     ->withJson($controller->indexAction(), null, JSON_PRETTY_PRINT);
             });
 
@@ -119,7 +135,6 @@ class Api
                 ]);
 
                 return $response
-                    ->withHeader('Content-Type', 'application/json')
                     ->withJson($controller->showAction($args['id']), null, JSON_PRETTY_PRINT);
             });
 
@@ -134,7 +149,6 @@ class Api
                 ]);
 
                 return $response
-                    ->withHeader('Content-Type', 'application/json')
                     ->withJson($controller->updateAction($args['id']), null, JSON_PRETTY_PRINT);
             });
 
@@ -149,7 +163,6 @@ class Api
                 ]);
 
                 return $response
-                    ->withHeader('Content-Type', 'application/json')
                     ->withJson($controller->createAction(), null, JSON_PRETTY_PRINT);
             });
 
@@ -164,9 +177,32 @@ class Api
                 ]);
 
                 return $response
-                    ->withHeader('Content-Type', 'application/json')
                     ->withJson($controller->deleteAction($args['id']), null, JSON_PRETTY_PRINT);
             });
+    }
+
+    /**
+     * Set default headers for response
+     *
+     * return void
+     */
+    public function setDefaultHeaders()
+    {
+        $defaultHeaders = $this->defaultHeaders;
+
+        $this->app->add(function (Request $request, Response $response, $next) use ($defaultHeaders) {
+
+            /** @var Response $response */
+            $response = $next($request, $response);
+
+            // Set headers
+            foreach ($defaultHeaders as $headerName => $headerValue) {
+                $response = $response->withHeader($headerName, $headerValue);
+            }
+
+            // Return final response
+            return $response;
+        });
     }
 
     /**
@@ -179,7 +215,7 @@ class Api
         $c = $this->app->getContainer();
 
         $c['errorHandler'] = function ($c) {
-            return function ($request, $response, $exception) use ($c) {
+            return function (Request $request, Response $response,  $exception) use ($c) {
                 return $c['response']->withStatus(500)
                     ->withHeader('Content-Type', 'application/json')
                     ->withJson(["type" => "error", "message" => $exception->getMessage()], null, JSON_PRETTY_PRINT);
@@ -188,5 +224,4 @@ class Api
 
         $this->app->run();
     }
-
 }

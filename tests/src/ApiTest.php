@@ -1,5 +1,4 @@
 <?php
-namespace Lazer\Classes;
 
 use Lazer\Classes\Helpers\Validate;
 use LazerRest\Api;
@@ -7,62 +6,73 @@ use Slim\App;
 
 class DatabaseTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var Api
-     */
-    protected $api;
-
-    /**
-     * @var App
-     */
-    protected $app;
 
     /**
      *
      */
     public function setUp()
     {
-        $this->app = new App();
-        $this->api = new Api($this->app);
+        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.data.json');
+        }
+        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.config.json');
+        }
     }
 
     /**
      *
      */
-    public function testCreatingModel()
+    public function testCreatingModelOnExistingTable()
     {
-        $this->api->createModel('test-model', [
+        $api = new Api(new App);
+
+        $api->createModel('test-model', [
             'title' => 'string',
             'content' => 'string',
         ]);
 
-        $tableCreated = false;
+        // Do it again here
+        $api->createModel('test-model', [
+            'title' => 'string',
+            'content' => 'string',
+        ]);
+
         try {
             $tableCreated = Validate::table('test-model')->exists();
         } catch (\Exception $e) {
-
+            $tableCreated = false;
         }
+
 
         $this->assertEquals($tableCreated, true);
     }
 
     public function testCreateModelOnNotExitingTable()
     {
-        unlink(LAZER_DATA_PATH.'/test-model.config.json');
-        unlink(LAZER_DATA_PATH.'/test-model.data.json');
+        $api = new Api(new App);
 
-        $this->api->createModel('test-model', [
+        $api->createModel('test-model', [
             'title' => 'string',
             'content' => 'string',
         ]);
 
-        $tableCreated = false;
         try {
             $tableCreated = Validate::table('test-model')->exists();
         } catch (\Exception $e) {
-
+            $tableCreated = false;
         }
 
         $this->assertEquals($tableCreated, true);
+    }
+
+    public function tearDown()
+    {
+        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.data.json');
+        }
+        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+            unlink(LAZER_DATA_PATH . '/test-model.config.json');
+        }
     }
 }
