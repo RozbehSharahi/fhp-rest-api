@@ -64,8 +64,7 @@ class Api
         $this->app = $app;
         $this->inflector = Inflector::get();
         $this->fileManager = new FileManager();
-        $this->headers = !empty($config['headers']) ? array_replace_recursive($this->headers,
-            $config['headers']) : $this->headers;
+        $this->headers = !empty($config['headers']) ? $config['headers'] : $this->headers;
 
         // Create database directory
         $this->fileManager->createDirectory(LAZER_DATA_PATH);
@@ -132,8 +131,11 @@ class Api
     {
         $this->app->getContainer()['errorHandler'] = function ($c) {
             return function () use ($c) {
+                /** @var \Exception $exception */
                 $exception = func_get_arg(2);
-                return $c['response']->withStatus(500)
+                /** @var Response $response */
+                $response = $c['response'];
+                return $response->withStatus(500)
                     ->withHeader('Content-Type', 'application/json')
                     ->withJson(["type" => "error", "message" => $exception->getMessage()], null, JSON_PRETTY_PRINT);
             };

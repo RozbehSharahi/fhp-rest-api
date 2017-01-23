@@ -25,15 +25,16 @@ composer require rozbehsharahi/lazer-rest-api
 
 ## How To
 
-The following index.php has PUT, GET, POST, OPTION, DELETE
+The following __index.php__ has PUT, GET, POST, OPTION, DELETE
 Routes. It's simple as that.
 
 ```php
-// index.php
+use LazerRest\Api;
+use Slim\App;
 require_once('vendor/autoload.php');
 define('LAZER_DATA_PATH', __DIR__ . '/database/');
 
-$api = new LazerRest\Api(new Slim\App);
+$api = new Api(new App);
 
 // Post model definition
 $api->createModel('post', [ // <-- Please use singular here
@@ -56,17 +57,11 @@ Please extend from `LazerRest\Controller\DefaultController` and
  `showAction`, `updateAction`, `deleteAction`, `createAction`.
 
 ```php
-// index.php
-
-...
-
 $api->createModel('post', [ // <-- Please use singular here
     'title' => 'string',
     'content' => 'string',
     'edited' => 'integer',
 ], \My\Own\PostController::class);
-
-...
 ```
 
 ## Super fast start without Apache
@@ -93,6 +88,34 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.php [QSA,L]
 ```
 
-## Todos
+## Security issues / CORS
+`lazer-rest-api` has a set of default headers defined in `LazerRest\Api`
+that also contain `'Access-Control-Allow-Origin' => '*'`. This is
+a security issue. Please make sure to configure your own header settings
+when going to production.
 
-* Implement tests
+You may set your headers inside the constructor parameters:
+
+```php
+$api = new Api(new App, [
+    'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
+]);
+```
+
+You may also set your headers using the setter:
+
+```php
+$api = new Api(new App);
+$api->setHeaders([
+    'Content-Type' => 'application/json',
+    'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
+]);
+
+```
+
+## Todos and Issues
+
+* Slim causes on __PHP5.6__ that payload cannot be read anymore. Therefore
+POST and PUT Requests do not work on PHP5.6. This is a big issue
+and will be fixed with the next release and tests will be written for this
+too.
