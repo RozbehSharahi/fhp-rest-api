@@ -1,13 +1,13 @@
 <?php
 
 use LazerRest\Api;
-use LazerRest\DefaultController;
+use LazerRest\Controller;
 use Slim\App;
 
-class DefaultControllerTest extends \PHPUnit_Framework_TestCase
+class ControllerTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var DefaultController
+     * @var Controller
      */
     protected $controller;
 
@@ -29,7 +29,7 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testControllerMustHaveModelName()
     {
-        new DefaultController();
+        new Controller();
     }
 
     /**
@@ -43,7 +43,7 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
             'title' => 'string'
         ]);
 
-        $controller = new DefaultController([
+        $controller = new Controller([
             'modelName' => 'test-model'
         ]);
 
@@ -63,7 +63,7 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
             'edited' => 'integer'
         ]);
 
-        $controller = new DefaultController([
+        $controller = new Controller([
             'modelName' => 'test-model',
             'payload' => [
                 'testModel' => [
@@ -92,7 +92,7 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
             'edited' => 'integer'
         ]);
 
-        $controller = new DefaultController([
+        $controller = new Controller([
             'modelName' => 'test-model',
             'payload' => [
                 'testModel' => [
@@ -105,7 +105,7 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($controller->showAction(1)['testModel']['title'], 'test');
 
-        $controller = new DefaultController([
+        $controller = new Controller([
             'modelName' => 'test-model',
             'payload' => [
                 'testModel' => [

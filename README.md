@@ -45,7 +45,7 @@ $api->run();
 You may also define your own controllers to handle model-requests. Just pass
 your controller's class name as the third parameter to `$api->createModel`.
 
-Please extend `LazerRest\DefaultController` and
+Please extend `LazerRest\Controller` and
  feel free to override the basic actions:
 
  * `public function indexAction() {}`

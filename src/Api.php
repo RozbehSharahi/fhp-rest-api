@@ -78,7 +78,7 @@ class Api
      * @param string $controllerName
      * @return $this
      */
-    public function createModel($modelName, $modelConfig, $controllerName = DefaultController::class)
+    public function createModel($modelName, $modelConfig, $controllerName = Controller::class)
     {
         $modelName = $this->inflector->hyphenate($modelName);
         return $this
@@ -149,7 +149,7 @@ class Api
      * @param string $controllerName
      * @return $this
      */
-    public function createRoutes($modelName, $modelConfig, $controllerName = DefaultController::class)
+    public function createRoutes($modelName, $modelConfig, $controllerName = Controller::class)
     {
         return $this
             ->assignHeaders()
@@ -179,7 +179,7 @@ class Api
             /** @var Response $response */
             $response = func_get_arg(1);
 
-            /** @var DefaultController $controller at least instance of */
+            /** @var Controller $controller at least instance of */
             $controller = new $controllerName([
                 'modelName' => $modelName,
                 'modelConfig' => $modelConfig,
@@ -213,7 +213,7 @@ class Api
                 /** @var array $args */
                 $args = func_get_arg(2);
 
-                /** @var DefaultController $controller */
+                /** @var Controller $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
                     'modelConfig' => $modelConfig,
@@ -247,7 +247,7 @@ class Api
                 /** @var array $args */
                 $args = func_get_arg(2);
 
-                /** @var DefaultController $controller */
+                /** @var Controller $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
                     'modelConfig' => $modelConfig,
@@ -279,7 +279,7 @@ class Api
                 /** @var Response $response */
                 $response = func_get_arg(1);
 
-                /** @var DefaultController $controller */
+                /** @var Controller $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
                     'modelConfig' => $modelConfig,
@@ -313,7 +313,7 @@ class Api
                 /** @var array $args */
                 $args = func_get_arg(2);
 
-                /** @var DefaultController $controller */
+                /** @var Controller $controller */
                 $controller = new $controllerName([
                     'modelName' => $modelName,
                     'modelConfig' => $modelConfig,

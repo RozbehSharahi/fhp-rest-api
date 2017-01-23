@@ -8,13 +8,13 @@ use Lazer\Classes\Database;
 use Slim\Http\Request;
 
 /**
- * Class LazerRest\DefaultController
+ * Class LazerRest\Controller
  *
  * The default controller to be called if no specific controller exists for the model
  *
  * @package LazerRest\Controller
  */
-class DefaultController
+class Controller
 {
 
     /**
@@ -43,7 +43,7 @@ class DefaultController
     protected $request;
 
     /**
-     * DefaultController constructor.
+     * Controller constructor.
      *
      * @param array $config
      * @throws \Exception
