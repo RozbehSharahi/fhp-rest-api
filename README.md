@@ -1,30 +1,27 @@
-# Lazer REST API [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=v1.1.0)](https://travis-ci.org/RozbehSharahi/lazer-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/lazer-rest-api))
+# Lazer-REST-API [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=v1.1.0)](https://travis-ci.org/RozbehSharahi/lazer-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/lazer-rest-api))
 
 ## Inspiration
 
-Lazer REST API was inspired by the project `greg0/lazer-database`.
-Lazer Database is PHP Library that provides using JSON files
-like a database. Therefore it is completely independent from
-databases and apache ...
-
-__Caution!: The project is still in progress and very new.__
+Lazer-REST-API was inspired by the project `greg0/lazer-database`, which
+ is PHP library that provides using JSON files
+ as a database.
 
 ## What is does
 
-With `lazer-rest-api` you can setup a super easy REST API
-that saves all data in JSON-Files. No MySQL Configuration and Setup
-is needed at all.
+With `rozbehsharahi/lazer-rest-api` you can setup a super easy REST-API
+that saves all data in JSON files and does not need any set up of
+any databases.
 
 ## Installation
 
 ```shell
-composer require rozbehsharahi/lazer-rest-api
+$ composer require rozbehsharahi/lazer-rest-api
 ```
 
 ## How To
 
-The following __index.php__ has PUT, GET, POST, OPTION, DELETE
-Routes. It's simple as that.
+The following __index.php__ is enough to provide PUT, GET, POST, OPTION, DELETE
+routes for your application:
 
 ```php
 use LazerRest\Api;
@@ -45,14 +42,21 @@ $api->run();
 
 ```
 
-### Defining own controllers
+### Defining custom model-controllers
 
-You may also define your own controller for the model and pass
-it's name as the third parameter to `$api->createModel`.
+You may also define your own controller for the models. Just pass
+the class name as third parameter to `$api->createModel`.
 
 Please extend from `LazerRest\Controller\DefaultController` and
- then feel free to override the basic functions `indexAction`,
- `showAction`, `updateAction`, `deleteAction`, `createAction`.
+ then feel free to override the basic functions:
+
+ * `public function indexAction() {}`
+ * `public function showAction($id) {}`
+ * `public function updateAction($id) {}`
+ * `public function deleteAction($id) {}`
+ * `public function createAction($id) {}`
+
+by calling `$api->createModel` like following:
 
 ```php
 $api->createModel('post', [ // <-- Please use singular here
@@ -113,7 +117,6 @@ $api->setHeaders([
 
 ## Todos and Issues
 
-* Slim causes on __PHP5.6__ that payload cannot be read anymore. Therefore
-POST and PUT Requests do not work on PHP5.6. This is a big issue
-and will be fixed with the next release and tests will be written for this
-too.
+* PHP5.6 fails at the moment. In PHP5.6 request content is empty after being read once. Due to
+ bad architecture of Lazer-REST-API payload is empty at the moment the Controllers are called.
+ The next release will integrate `\Slim\Http\Request` to have the payload available.
