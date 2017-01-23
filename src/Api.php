@@ -174,6 +174,16 @@ class Api
      */
     public function run()
     {
+        $c = $this->app->getContainer();
+
+        $c['errorHandler'] = function ($c) {
+            return function ($request, $response, $exception) use ($c) {
+                return $c['response']->withStatus(500)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withJson(["type" => "error", "message" => $exception->getMessage()], null, JSON_PRETTY_PRINT);
+            };
+        };
+
         $this->app->run();
     }
 
