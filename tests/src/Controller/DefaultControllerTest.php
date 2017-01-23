@@ -62,12 +62,11 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         $controller = new DefaultController([
-            'modelName' => 'test-model'
-        ]);
-
-        $controller->setPayload([
-            'testModel' => [
-                'title' => 'hello'
+            'modelName' => 'test-model',
+            'payload' => [
+                'testModel' => [
+                    'title' => 'hello'
+                ]
             ]
         ]);
 
@@ -94,12 +93,11 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         $controller = new DefaultController([
-            'modelName' => 'test-model'
-        ]);
-
-        $controller->setPayload([
-            'testModel' => [
-                'title' => 'test'
+            'modelName' => 'test-model',
+            'payload' => [
+                'testModel' => [
+                    'title' => 'test'
+                ]
             ]
         ]);
 
@@ -107,9 +105,12 @@ class DefaultControllerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($controller->showAction(1)['testModel']['title'], 'test');
 
-        $controller->setPayload([
-            'testModel' => [
-                'title' => 'test2'
+        $controller = new DefaultController([
+            'modelName' => 'test-model',
+            'payload' => [
+                'testModel' => [
+                    'title' => 'test2'
+                ]
             ]
         ]);
 

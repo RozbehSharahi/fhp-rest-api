@@ -24,7 +24,7 @@ class DefaultController
     /**
      * @var string
      */
-    protected $modelNodeName;
+    protected $nodeName;
 
     /**
      * @var Inflector
@@ -44,11 +44,10 @@ class DefaultController
      */
     public function __construct($config = array())
     {
-        $this->payload = json_decode(file_get_contents('php://input'), true);
-
         $this->inflector = !empty($config['inflector']) ? $config['inflector'] : Inflector::get();
         $this->modelName = !empty($config['modelName']) ? $config['modelName'] : $this->modelName;
-        $this->modelNodeName = lcfirst($this->inflector->camelize($this->modelName));
+        $this->payload = !empty($config['payload']) ? $config['payload'] : json_decode(file_get_contents('php://input'), true);
+        $this->nodeName = !empty($config['nodeName']) ? $config['nodeName'] : lcfirst($this->inflector->camelize($this->modelName));
 
         // Asserts
         if (empty($this->modelName)) {
@@ -64,7 +63,7 @@ class DefaultController
     public function indexAction()
     {
         $models = Database::table($this->inflector->hyphenate($this->modelName))->findAll()->asArray();
-        return [$this->inflector->pluralize($this->modelNodeName) => $models];
+        return [$this->inflector->pluralize($this->nodeName) => $models];
     }
 
     /**
@@ -75,8 +74,7 @@ class DefaultController
     public function showAction($id)
     {
         $model = Database::table($this->inflector->hyphenate($this->modelName))->find($id);
-
-        return [$this->modelNodeName => $this->modelToArray($model)];
+        return [$this->nodeName => $this->modelToArray($model)];
     }
 
     /**
@@ -88,7 +86,7 @@ class DefaultController
         $model = Database::table($this->inflector->hyphenate($this->modelName));
 
         // Fill up
-        foreach ($this->getRequestContent()[$this->modelNodeName] as $propertyName => $propertyValue) {
+        foreach ($this->getRequestContent()[$this->nodeName] as $propertyName => $propertyValue) {
             if (in_array($propertyName, $model->fields())) {
                 try {
                     $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
@@ -107,7 +105,7 @@ class DefaultController
         $model->save();
 
         // Return the model
-        return [$this->modelNodeName => $this->modelToArray($model)];
+        return [$this->nodeName => $this->modelToArray($model)];
     }
 
     /**
@@ -120,7 +118,7 @@ class DefaultController
         $model = Database::table($this->inflector->hyphenate($this->modelName))->find($id);
 
         // Fill up
-        foreach ($this->getRequestContent()[$this->modelNodeName] as $propertyName => $propertyValue) {
+        foreach ($this->getRequestContent()[$this->nodeName] as $propertyName => $propertyValue) {
             if (in_array($propertyName, $model->fields())) {
                 try {
                     $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
@@ -139,7 +137,7 @@ class DefaultController
         $model->save();
 
         // Return the model
-        return [$this->modelNodeName => $this->modelToArray($model)];
+        return [$this->nodeName => $this->modelToArray($model)];
     }
 
     /**
@@ -159,14 +157,6 @@ class DefaultController
     {
         $result = !empty($_GET['payload']) ? $_GET['payload'] : (!empty($_POST) ? $_POST : (!empty($this->payload) ? $this->payload : array()));
         return $result;
-    }
-
-    /**
-     * @param array $payload
-     */
-    public function setPayload($payload)
-    {
-        $this->payload = $payload;
     }
 
     /**
