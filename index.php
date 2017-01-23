@@ -8,11 +8,10 @@ header('Access-Control-Allow-Methods: GET, PUT, POST, OPTIONS, DELETE');
 
 define('LAZER_DATA_PATH', __DIR__ . '/database/');
 
-$lazerRest = new LazerRest\Api(new Slim\App);
+$api = new LazerRest\Api(new Slim\App);
 
-// Post model definition
 // Create a model
-$lazerRest->createModel('note', [
+$api->createModel('note', [
     'title' => 'string',
     'content' => 'string',
     'top' => 'string',
@@ -24,4 +23,4 @@ $lazerRest->createModel('note', [
 ]);
 
 // Run
-$lazerRest->run();
+$api->run();
