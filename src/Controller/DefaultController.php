@@ -112,16 +112,6 @@ class DefaultController
 
     /**
      * @param string $id
-     * @return array
-     */
-    public function deleteAction($id)
-    {
-        Database::table($this->inflector->hyphenate($this->modelName))->find($id)->delete();
-        return ['message' => $this->modelName . ' with id=' . $id . ' has been deleted'];
-    }
-
-    /**
-     * @param string $id
      * @return mixed
      */
     public function updateAction($id)
@@ -150,6 +140,16 @@ class DefaultController
 
         // Return the model
         return [$this->modelNodeName => $this->modelToArray($model)];
+    }
+
+    /**
+     * @param string $id
+     * @return array
+     */
+    public function deleteAction($id)
+    {
+        Database::table($this->inflector->hyphenate($this->modelName))->find($id)->delete();
+        return ['message' => $this->modelName . ' with id=' . $id . ' has been deleted'];
     }
 
     /**
