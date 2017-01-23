@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/RozbehSharahi/lazer-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/lazer-rest-api)
+
 # Lazer REST API
 ## Inspiration
 
