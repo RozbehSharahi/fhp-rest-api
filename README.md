@@ -54,7 +54,7 @@ $api->run();
 ### Defining own controllers
 
 You may also define your own controller for the model and pass
-it's name as the third parameter to `$lazerRest->createModel`.
+it's name as the third parameter to `$api->createModel`.
 
 Please extend from `LazerRest\Controller\DefaultController` and
  then feel free to override the basic functions `indexAction`,
@@ -65,7 +65,7 @@ Please extend from `LazerRest\Controller\DefaultController` and
 
 ...
 
-$lazerRest->createModel('post', [ // <-- Please use singular here
+$api->createModel('post', [ // <-- Please use singular here
     'title' => 'string',
     'content' => 'string',
     'edited' => 'integer',
