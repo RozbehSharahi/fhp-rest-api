@@ -17,7 +17,7 @@ is needed at all.
 
 ## Installation
 
-```php
+```shell
 composer require rozbehsharahi/lazer-rest-api
 ```
 
