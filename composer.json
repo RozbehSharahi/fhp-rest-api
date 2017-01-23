@@ -1,6 +1,7 @@
 {
     "name": "rozbehsharahi/lazer-rest-api",
     "description": "Super quick setup of a PHP-REST-API without the use of MySQL, Apache, ...",
+    "keywords": ["rest", "restful", "simple", "json", "flat", "file", "database", "db", "ember"],
     "homepage": "http://github.com/RozbehSharahi/lazer-rest-api",
     "require": {
         "slim/slim": "^3.7",
