@@ -52,7 +52,7 @@ class DefaultController
     {
         $this->inflector = !empty($config['inflector']) ? $config['inflector'] : Inflector::get();
         $this->modelName = !empty($config['modelName']) ? $config['modelName'] : $this->modelName;
-        $this->payload = !empty($config['payload']) ? $config['payload'] : json_decode(file_get_contents('php://input'), true);
+        $this->payload = !empty($config['payload']) ? $config['payload'] : $this->getPayload();
         $this->nodeName = !empty($config['nodeName']) ? $config['nodeName'] : lcfirst($this->inflector->camelize($this->modelName));
         $this->request = !empty($config['request']) ? $config['request'] : null;
 
@@ -93,7 +93,7 @@ class DefaultController
         $model = Database::table($this->inflector->hyphenate($this->modelName));
 
         // Fill up
-        foreach ($this->getRequestContent()[$this->nodeName] as $propertyName => $propertyValue) {
+        foreach ($this->getPayload()[$this->nodeName] as $propertyName => $propertyValue) {
             if (in_array($propertyName, $model->fields())) {
                 try {
                     $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
@@ -125,7 +125,7 @@ class DefaultController
         $model = Database::table($this->inflector->hyphenate($this->modelName))->find($id);
 
         // Fill up
-        foreach ($this->getRequestContent()[$this->nodeName] as $propertyName => $propertyValue) {
+        foreach ($this->getPayload()[$this->nodeName] as $propertyName => $propertyValue) {
             if (in_array($propertyName, $model->fields())) {
                 try {
                     $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
@@ -160,10 +160,16 @@ class DefaultController
     /**
      * @return array
      */
-    public function getRequestContent()
+    public function getPayload()
     {
-        $result = !empty($_GET['payload']) ? $_GET['payload'] : (!empty($_POST) ? $_POST : (!empty($this->payload) ? $this->payload : array()));
-        return $result;
+        if (is_null($this->payload)) {
+            try {
+                $this->payload = json_decode(file_get_contents('php://input'), true);
+            } catch (\Exception $e) {
+                $this->payload = [];
+            }
+        }
+        return $this->payload;
     }
 
     /**
