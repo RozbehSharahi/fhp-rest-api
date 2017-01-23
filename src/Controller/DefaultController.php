@@ -162,6 +162,14 @@ class DefaultController
     }
 
     /**
+     * @param array $payload
+     */
+    public function setPayload($payload)
+    {
+        $this->payload = $payload;
+    }
+
+    /**
      * @param Core_Database $row
      * @return array
      */

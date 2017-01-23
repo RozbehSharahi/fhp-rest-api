@@ -34,17 +34,17 @@ class Api
      * @param App $app
      * @throws \Exception
      */
-    public function __construct(App $app)
+    public function __construct($app)
     {
-        header('Content-Type: application/json');
-
         // Create database directory if needed
         if (defined('LAZER_DATA_PATH')) {
             if (!is_dir(LAZER_DATA_PATH) && !is_file(LAZER_DATA_PATH)) {
                 mkdir(LAZER_DATA_PATH);
             }
         } else {
+            //@codeCoverageIgnoreStart
             throw new \Exception('LAZER_DATA_PATH is not defined');
+            //@codeCoverageIgnoreEnd
         }
 
         $this->app = $app;
@@ -171,6 +171,8 @@ class Api
 
     /**
      * Just start $slim->run :)
+     *
+     * @codeCoverageIgnore
      */
     public function run()
     {
