@@ -18,8 +18,6 @@ is needed at all.
 ## Installation
 
 ```php
-// This is for the future
-
 composer require rozbehsharahi/lazer-rest-api
 ```
 
