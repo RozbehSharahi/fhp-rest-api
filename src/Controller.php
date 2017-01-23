@@ -3,9 +3,6 @@
 namespace LazerRest;
 
 use ICanBoogie\Inflector;
-use Lazer\Classes\Core_Database;
-use Lazer\Classes\Database;
-use Slim\Http\Request;
 
 /**
  * Class LazerRest\Controller
@@ -38,9 +35,9 @@ class Controller
     protected $payload;
 
     /**
-     * @var Request
+     * @var Database
      */
-    protected $request;
+    protected $database;
 
     /**
      * Controller constructor.
@@ -52,9 +49,9 @@ class Controller
     {
         $this->inflector = !empty($config['inflector']) ? $config['inflector'] : Inflector::get();
         $this->modelName = !empty($config['modelName']) ? $config['modelName'] : $this->modelName;
-        $this->payload = !empty($config['payload']) ? $config['payload'] : $this->getPayload();
         $this->nodeName = !empty($config['nodeName']) ? $config['nodeName'] : lcfirst($this->inflector->camelize($this->modelName));
-        $this->request = !empty($config['request']) ? $config['request'] : null;
+        $this->database = !empty($config['database']) ? $config['database'] : new Database($this->modelName);
+        $this->payload = !empty($config['payload']) ? $config['payload'] : $this->getPayload();
 
         // Asserts
         if (empty($this->modelName)) {
@@ -69,7 +66,10 @@ class Controller
      */
     public function indexAction()
     {
-        $models = Database::table($this->inflector->hyphenate($this->modelName))->findAll()->asArray();
+        $models = $this->database->createQuery()
+            ->findAll()
+            ->asArray();
+
         return [$this->inflector->pluralize($this->nodeName) => $models];
     }
 
@@ -80,8 +80,10 @@ class Controller
      */
     public function showAction($id)
     {
-        $model = Database::table($this->inflector->hyphenate($this->modelName))->find($id);
-        return [$this->nodeName => $this->modelToArray($model)];
+        $model = $this->database->createQuery()
+            ->find($id);
+
+        return [$this->nodeName => $model->toArray()];
     }
 
     /**
@@ -89,30 +91,12 @@ class Controller
      */
     public function createAction()
     {
-        // Prepare
-        $model = Database::table($this->inflector->hyphenate($this->modelName));
+        $model = $this->database->createQuery()
+            ->set($this->getPayload()[$this->nodeName])
+            ->set('edited', time());
 
-        // Fill up
-        foreach ($this->getPayload()[$this->nodeName] as $propertyName => $propertyValue) {
-            if (in_array($propertyName, $model->fields())) {
-                try {
-                    $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
-                } catch (\Exception $e) {
-
-                }
-            }
-        }
-
-        // Edited field
-        if (in_array('edited', $model->fields())) {
-            $model->edited = time();
-        }
-
-        // Save the model
         $model->save();
-
-        // Return the model
-        return [$this->nodeName => $this->modelToArray($model)];
+        return [$this->nodeName => $model->toArray()];
     }
 
     /**
@@ -121,30 +105,13 @@ class Controller
      */
     public function updateAction($id)
     {
-        // Prepare
-        $model = Database::table($this->inflector->hyphenate($this->modelName))->find($id);
+        $model = $this->database->createQuery()
+            ->find($id)
+            ->set($this->getPayload()[$this->nodeName])
+            ->set('edited', time());
 
-        // Fill up
-        foreach ($this->getPayload()[$this->nodeName] as $propertyName => $propertyValue) {
-            if (in_array($propertyName, $model->fields())) {
-                try {
-                    $model->{$propertyName} = !empty($propertyValue) ? $propertyValue : '';
-                } catch (\Exception $e) {
-
-                }
-            }
-        }
-
-        // Edited field
-        if (in_array('edited', $model->fields())) {
-            $model->edited = time();
-        }
-
-        // Save the model
         $model->save();
-
-        // Return the model
-        return [$this->nodeName => $this->modelToArray($model)];
+        return [$this->nodeName => $model->toArray()];
     }
 
     /**
@@ -153,7 +120,10 @@ class Controller
      */
     public function deleteAction($id)
     {
-        Database::table($this->inflector->hyphenate($this->modelName))->find($id)->delete();
+        $this->database->createQuery()
+            ->find($id)
+            ->delete();
+
         return ['message' => $this->modelName . ' with id=' . $id . ' has been deleted'];
     }
 
@@ -165,28 +135,13 @@ class Controller
         if (is_null($this->payload)) {
             try {
                 $this->payload = json_decode(file_get_contents('php://input'), true);
+                //@codeCoverageIgnoreStart
             } catch (\Exception $e) {
                 $this->payload = [];
+                //@codeCoverageIgnoreEnd
             }
         }
         return $this->payload;
-    }
-
-    /**
-     * @param Core_Database $row
-     * @return array
-     */
-    public function modelToArray($row)
-    {
-        $rowArray = [];
-        foreach ($row->fields() as $field) {
-            try {
-                $rowArray[$field] = $row->{$field};
-            } catch (\Exception $e) {
-
-            }
-        }
-        return $rowArray;
     }
 
 }

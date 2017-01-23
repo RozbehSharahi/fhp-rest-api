@@ -2,6 +2,7 @@
 
 use LazerRest\Api;
 use LazerRest\Controller;
+use LazerRest\Database;
 use Slim\App;
 
 class ControllerTest extends \PHPUnit_Framework_TestCase
@@ -16,10 +17,10 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
             unlink(LAZER_DATA_PATH . '/test-model.data.json');
         }
-        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
             unlink(LAZER_DATA_PATH . '/test-model.config.json');
         }
     }
@@ -29,7 +30,9 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testControllerMustHaveModelName()
     {
-        new Controller();
+        new Controller([
+            'database' => 'FAKE DB'
+        ]);
     }
 
     /**
@@ -124,14 +127,35 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException Exception
+     */
+    public function testInvalidPayload()
+    {
+        Database::create('test-model', [
+            'title' => 'string'
+        ]);
+
+        $controller = new Controller([
+            'modelName' => 'test-model',
+            'payload' => '"NO}Valid JSOn"$§'
+        ]);
+
+        try {
+            $controller->createAction();
+        } catch (\Exception $e) {
+            throw new Exception('Error');
+        }
+    }
+
+    /**
      * Teardown the database
      */
     public function tearDown()
     {
-        if(is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
+        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
             unlink(LAZER_DATA_PATH . '/test-model.data.json');
         }
-        if(is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
+        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
             unlink(LAZER_DATA_PATH . '/test-model.config.json');
         }
     }
