@@ -59,7 +59,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
             'modelName' => 'test-model',
         ]);
 
-        $controller->mockPayload([
+        $controller->setMockedPayload([
             'testModel' => [
                 'title' => 'hello'
             ]
@@ -82,7 +82,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
         $controller = new Controller([
             'modelName' => 'test-model'
         ]);
-        $controller->mockPayload([
+        $controller->setMockedPayload([
             'testModel' => [
                 'title' => 'test'
             ]
@@ -91,7 +91,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
         $response = $this->action($controller, 'createAction');
         $this->assertEquals($response['testModel']['title'], 'test');
 
-        $controller->mockPayload([
+        $controller->setMockedPayload([
             'testModel' => [
                 'title' => 'test2'
             ]
@@ -113,7 +113,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
         $controller = new Controller([
             'modelName' => 'test-model',
         ]);
-        $controller->mockPayload(['payload' => '"NO}Valid JSOn"$§']);
+        $controller->setMockedPayload(['payload' => '"NO}Valid JSOn"$§']);
 
         try {
             $this->action($controller, 'createAction');

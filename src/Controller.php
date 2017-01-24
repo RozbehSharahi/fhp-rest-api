@@ -107,7 +107,7 @@ class Controller
             ->set($payload)
             ->set('edited', time())
             ->save();
-        
+
         return $this->response([$this->nodeName => $model->toArray()]);
     }
 
@@ -189,11 +189,13 @@ class Controller
     }
 
     /**
-     *
+     * @param array $payload
+     * @return $this
      */
-    public function mockPayload($payload)
+    public function setMockedPayload($payload)
     {
         $this->mockedPayload = $payload;
+        return $this;
     }
 
 }
