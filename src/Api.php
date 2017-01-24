@@ -3,11 +3,10 @@
 namespace Fhp\Rest;
 
 use ICanBoogie\Inflector;
-use Lazer\Classes\Database;
-use Lazer\Classes\Helpers\Validate;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
+use Slim\Container;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -41,6 +40,11 @@ class Api
     protected $fileManager;
 
     /**
+     * @var Database
+     */
+    protected $database;
+
+    /**
      * Default headers that may be overwritten
      *
      * @var array
@@ -65,6 +69,7 @@ class Api
         $this->inflector = Inflector::get();
         $this->fileManager = new FileManager();
         $this->headers = !empty($config['headers']) ? $config['headers'] : $this->headers;
+        $this->database = new Database();
 
         // Create database directory
         $this->fileManager->createDirectory(LAZER_DATA_PATH);
@@ -82,8 +87,8 @@ class Api
     {
         $modelName = $this->inflector->hyphenate($modelName);
         return $this
-            ->createOrReplaceTable($modelName, $modelConfig)
-            ->createRoutes($modelName, $modelConfig, $controllerName);
+            ->createTable($modelName, $modelConfig)
+            ->createRoutes($modelName, $controllerName);
     }
 
     /**
@@ -93,12 +98,10 @@ class Api
      * @param array $modelConfig
      * @return $this
      */
-    public function createOrReplaceTable($modelName, $modelConfig)
+    public function createTable($modelName, $modelConfig)
     {
-        try {
-            Validate::table($modelName)->exists();
-        } catch (\Exception $e) {
-            Database::create($modelName, $modelConfig);
+        if (!$this->database->hasTable($modelName)) {
+            $this->database->createTable($modelName, $modelConfig);
         }
         return $this;
     }
@@ -145,50 +148,34 @@ class Api
 
     /**
      * @param string $modelName
-     * @param array $modelConfig
      * @param string $controllerName
      * @return $this
      */
-    public function createRoutes($modelName, $modelConfig, $controllerName = Controller::class)
+    public function createRoutes($modelName, $controllerName = Controller::class)
     {
+        $controller = new $controllerName(['modelName' => $modelName]);
+
         return $this
             ->assignHeaders()
             ->assignErrorHandling()
-            ->createIndexRoute($modelName, $modelConfig, $controllerName)
-            ->createShowRoute($modelName, $modelConfig, $controllerName)
-            ->createUpdateRoute($modelName, $modelConfig, $controllerName)
-            ->createCreateRoute($modelName, $modelConfig, $controllerName)
-            ->createDeleteRoute($modelName, $modelConfig, $controllerName);
+            ->createIndexRoute($modelName, $controller)
+            ->createShowRoute($modelName, $controller)
+            ->createUpdateRoute($modelName, $controller)
+            ->createCreateRoute($modelName, $controller)
+            ->createDeleteRoute($modelName, $controller);
     }
 
     /**
      * /modelName (GET)
      *
      * @param $modelName
-     * @param $modelConfig
-     * @param $controllerName
+     * @param $controller
      * @return $this
      */
-    public function createIndexRoute($modelName, $modelConfig, $controllerName)
+    public function createIndexRoute($modelName, $controller)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
-        $this->app->get($modelPath, function () use ($modelName, $modelConfig, $controllerName) {
-
-            /** @var Request $request */
-            $request = func_get_arg(0);
-            /** @var Response $response */
-            $response = func_get_arg(1);
-
-            /** @var Controller $controller at least instance of */
-            $controller = new $controllerName([
-                'modelName' => $modelName,
-                'modelConfig' => $modelConfig,
-                'request' => $request,
-            ]);
-
-            return $response
-                ->withJson($controller->indexAction(), null, JSON_PRETTY_PRINT);
-        });
+        $this->app->get($modelPath, [$controller, 'indexAction']);
         return $this;
     }
 
@@ -196,33 +183,13 @@ class Api
      * /modelName/id (GET)
      *
      * @param $modelName
-     * @param $modelConfig
-     * @param $controllerName
+     * @param $controller
      * @return $this
      */
-    public function createShowRoute($modelName, $modelConfig, $controllerName)
+    public function createShowRoute($modelName, $controller)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
-        $this->app->get($modelPath . '/{id}',
-            function () use ($modelName, $modelConfig, $controllerName) {
-
-                /** @var Request $request */
-                $request = func_get_arg(0);
-                /** @var Response $response */
-                $response = func_get_arg(1);
-                /** @var array $args */
-                $args = func_get_arg(2);
-
-                /** @var Controller $controller */
-                $controller = new $controllerName([
-                    'modelName' => $modelName,
-                    'modelConfig' => $modelConfig,
-                    'request' => $request,
-                ]);
-
-                return $response
-                    ->withJson($controller->showAction($args['id']), null, JSON_PRETTY_PRINT);
-            });
+        $this->app->get($modelPath . '/{id}', [$controller, 'showAction']);
         return $this;
     }
 
@@ -230,33 +197,13 @@ class Api
      * /modelName/id (PUT)
      *
      * @param $modelName
-     * @param $modelConfig
-     * @param $controllerName
+     * @param $controller
      * @return $this
      */
-    public function createUpdateRoute($modelName, $modelConfig, $controllerName)
+    public function createUpdateRoute($modelName, $controller)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
-        $this->app->put($modelPath . '/{id}',
-            function () use ($modelName, $modelConfig, $controllerName) {
-
-                /** @var Request $request */
-                $request = func_get_arg(0);
-                /** @var Response $response */
-                $response = func_get_arg(1);
-                /** @var array $args */
-                $args = func_get_arg(2);
-
-                /** @var Controller $controller */
-                $controller = new $controllerName([
-                    'modelName' => $modelName,
-                    'modelConfig' => $modelConfig,
-                    'request' => $request,
-                ]);
-
-                return $response
-                    ->withJson($controller->updateAction($args['id']), null, JSON_PRETTY_PRINT);
-            });
+        $this->app->put($modelPath . '/{id}', [$controller, 'updateAction']);
         return $this;
     }
 
@@ -264,31 +211,13 @@ class Api
      * /modelName (POST)
      *
      * @param $modelName
-     * @param $modelConfig
-     * @param $controllerName
+     * @param $controller
      * @return $this
      */
-    public function createCreateRoute($modelName, $modelConfig, $controllerName)
+    public function createCreateRoute($modelName, $controller)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
-        $this->app->post($modelPath,
-            function () use ($modelName, $modelConfig, $controllerName) {
-
-                /** @var Request $request */
-                $request = func_get_arg(0);
-                /** @var Response $response */
-                $response = func_get_arg(1);
-
-                /** @var Controller $controller */
-                $controller = new $controllerName([
-                    'modelName' => $modelName,
-                    'modelConfig' => $modelConfig,
-                    'request' => $request,
-                ]);
-
-                return $response
-                    ->withJson($controller->createAction(), null, JSON_PRETTY_PRINT);
-            });
+        $this->app->post($modelPath, [$controller, 'createAction']);
         return $this;
     }
 
@@ -296,33 +225,13 @@ class Api
      * /modelName/id (DELETE)
      *
      * @param $modelName
-     * @param $modelConfig
-     * @param $controllerName
+     * @param $controller
      * @return $this
      */
-    public function createDeleteRoute($modelName, $modelConfig, $controllerName)
+    public function createDeleteRoute($modelName, $controller)
     {
         $modelPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($modelName)));
-        $this->app->delete($modelPath . '/{id}',
-            function () use ($modelName, $modelConfig, $controllerName) {
-
-                /** @var Request $request */
-                $request = func_get_arg(0);
-                /** @var Response $response */
-                $response = func_get_arg(1);
-                /** @var array $args */
-                $args = func_get_arg(2);
-
-                /** @var Controller $controller */
-                $controller = new $controllerName([
-                    'modelName' => $modelName,
-                    'modelConfig' => $modelConfig,
-                    'request' => $request,
-                ]);
-
-                return $response
-                    ->withJson($controller->deleteAction($args['id']), null, JSON_PRETTY_PRINT);
-            });
+        $this->app->delete($modelPath . '/{id}', [$controller, 'deleteAction']);
         return $this;
     }
 
@@ -358,9 +267,55 @@ class Api
 
     /**
      * @param array $headers
+     * @return $this
      */
     public function setHeaders($headers)
     {
         $this->headers = $headers;
+        return $this;
+    }
+
+    /**
+     * @return Database
+     */
+    public function getDatabase()
+    {
+        return $this->database;
+    }
+
+    /**
+     * @param Database $database
+     * @return $this
+     */
+    public function setDatabase($database)
+    {
+        $this->database = $database;
+        return $this;
+    }
+
+    /**
+     * @return App
+     */
+    public function getApp()
+    {
+        return $this->app;
+    }
+
+    /**
+     * @param App $app
+     * @return $this
+     */
+    public function setApp($app)
+    {
+        $this->app = $app;
+        return $this;
+    }
+
+    /**
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->app->getContainer();
     }
 }

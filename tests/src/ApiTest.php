@@ -1,28 +1,27 @@
 <?php
 
-use Lazer\Classes\Helpers\Validate;
+use Fhp\Rest\Database;
 use Fhp\Rest\Api;
 use Slim\App;
-use Slim\Http\Headers;
-use Slim\Http\Request;
-use Slim\Http\Response;
-use Slim\Http\Stream;
 use Slim\Http\Uri;
 
 class DatabaseTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Database
+     */
+    protected $database;
 
     /**
      *
      */
     public function setUp()
     {
-        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        }
-        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.config.json');
-        }
+        $this->database = new Database();
+        $this->database->createTable('test-model', [
+            'title' => 'string',
+            'content' => 'string',
+        ]);
     }
 
     /**
@@ -32,25 +31,17 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
     {
         $api = new Api(new App);
 
-        $api->createModel('test-model', [
-            'title' => 'string',
-            'content' => 'string',
-        ]);
+        // Double set model
+        $api
+            ->createModel('test-model', [
+                'title' => 'string',
+                'content' => 'string',
+            ])->createModel('test-model', [
+                'title' => 'string',
+                'content' => 'string',
+            ]);
 
-        // Do it again here
-        $api->createModel('test-model', [
-            'title' => 'string',
-            'content' => 'string',
-        ]);
-
-        try {
-            $tableCreated = Validate::table('test-model')->exists();
-        } catch (\Exception $e) {
-            $tableCreated = false;
-        }
-
-
-        $this->assertEquals($tableCreated, true);
+        $this->assertEquals($api->getDatabase()->hasTable('test-model'), true);
     }
 
     public function testCreateModelOnNotExitingTable()
@@ -62,19 +53,14 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'content' => 'string',
         ]);
 
-        try {
-            $tableCreated = Validate::table('test-model')->exists();
-        } catch (\Exception $e) {
-            $tableCreated = false;
-        }
-
-        $this->assertEquals($tableCreated, true);
+        $this->assertEquals($api->getDatabase()->hasTable('test-model'), true);
     }
 
     public function testHeaders()
     {
         $api = new Api(new App, [
             'headers' => [
+                'Content-Type' => 'test',
                 'myAdditionalHeader' => 'hello'
             ]
         ]);
@@ -83,19 +69,16 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'title' => 'string'
         ]);
 
-        $api->process(
-            new Request('GET', new Uri('http', 'host', null, '/testModels'), new Headers(), [], [],
-                new Stream($this->getMockStream())),
-            new Response()
-        );
+        $request = $api->getContainer()->get('request')->withUri(new Uri('http', 'localhost', 80, '/testModels'));
+        $response = $api->getContainer()->get('response');
 
-        $response = $api->run(true);
+        $response = $api->getApp()->process($request, $response);
 
         $this->assertArrayHasKey('myAdditionalHeader', $response->getHeaders());
         $this->assertArrayHasKey('Content-Type', $response->getHeaders());
     }
 
-    public function testSetOwnHeaders()
+    public function testSetHeadersBySetter()
     {
         $api = new Api(new App);
 
@@ -107,40 +90,20 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'title' => 'string'
         ]);
 
-        $api->process(
-            new Request('GET', new Uri('http', 'host', null, '/testModels'), new Headers(), [], [],
-                new Stream($this->getMockStream())),
-            new Response()
-        );
+        $request = $api->getContainer()->get('request')->withUri(new Uri('http', 'localhost', 80, '/testModels'));
+        $response = $api->getContainer()->get('response');
+        $response = $api->getApp()->process($request, $response);
 
-        $response = $api->run(true);
         $this->assertArrayHasKey('test-header', $response->getHeaders());
-        $this->assertArrayHasKey('test-header', $api->getHeaders());
+        $this->assertArrayNotHasKey('Content-Type', $response->getHeaders());
     }
 
     /**
-     * @return resource
+     * Teardown the database
      */
-    public function getMockStream()
-    {
-        $context = stream_context_create(
-            array(
-                'http' => array(
-                    'method' => 'GET'
-                )
-            )
-        );
-        $stream = fopen('http://example.com', 'r', false, $context);
-        return $stream;
-    }
-
     public function tearDown()
     {
-        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        }
-        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.config.json');
-        }
+        $this->database->remove('test-model');
+        $this->database->remove('system');
     }
 }

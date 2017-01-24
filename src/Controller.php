@@ -3,6 +3,8 @@
 namespace Fhp\Rest;
 
 use ICanBoogie\Inflector;
+use Slim\Http\Request;
+use Slim\Http\Response;
 
 /**
  * Class Fhp\Rest\Controller
@@ -30,14 +32,16 @@ class Controller
     protected $inflector;
 
     /**
-     * @var array
-     */
-    protected $payload;
-
-    /**
      * @var Database
      */
     protected $database;
+
+    /**
+     * This is for testing to mock a payload
+     *
+     * @var array
+     */
+    protected $mockedPayload;
 
     /**
      * Controller constructor.
@@ -51,7 +55,6 @@ class Controller
         $this->modelName = !empty($config['modelName']) ? $config['modelName'] : $this->modelName;
         $this->nodeName = !empty($config['nodeName']) ? $config['nodeName'] : lcfirst($this->inflector->camelize($this->modelName));
         $this->database = !empty($config['database']) ? $config['database'] : new Database($this->modelName);
-        $this->payload = !empty($config['payload']) ? $config['payload'] : $this->getPayload();
 
         // Asserts
         $this->assert('ModelName must not be empty in ' . __METHOD__, !empty($this->modelName));
@@ -60,73 +63,88 @@ class Controller
     /**
      * Default index action
      *
-     * @return array
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
      */
-    public function indexAction()
+    public function indexAction($request = null, $response = null, $args = [])
     {
         $models = $this->database->createQuery()
             ->findAll()
             ->asArray();
 
-        return [$this->inflector->pluralize($this->nodeName) => $models];
+        return $this->response([$this->inflector->pluralize($this->nodeName) => $models]);
     }
 
     /**
-     * @param string $id
-     * @return mixed
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     */
+    public function showAction($request = null, $response = null, $args = [])
+    {
+        $model = $this->database->createQuery()
+            ->find($args['id']);
+
+        return $this->response([$this->nodeName => $model->toArray()]);
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
      * @throws \Exception
      */
-    public function showAction($id)
+    public function createAction($request = null, $response = null, $args = [])
     {
-        $model = $this->database->createQuery()
-            ->find($id);
-
-        return [$this->nodeName => $model->toArray()];
-    }
-
-    /**
-     * @return mixed
-     */
-    public function createAction()
-    {
-        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($this->getPayload()[$this->nodeName]));
+        $payload = $this->getPayload($request, $this->nodeName);
+        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($payload) && is_array($payload));
 
         $model = $this->database->createQuery()
-            ->set($this->getPayload()[$this->nodeName])
+            ->set($payload)
             ->set('edited', time());
 
         $model->save();
-        return [$this->nodeName => $model->toArray()];
+        return $this->response([$this->nodeName => $model->toArray()]);
     }
 
     /**
-     * @param string $id
-     * @return mixed
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
+     * @throws \Exception
      */
-    public function updateAction($id)
+    public function updateAction($request = null, $response = null, $args = [])
     {
-        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($this->getPayload()[$this->nodeName]));
+        $payload = $this->getPayload($request, $this->nodeName);
+        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($payload) && is_array($payload));
 
         $model = $this->database->createQuery()
-            ->find($id)
-            ->set($this->getPayload()[$this->nodeName])
-            ->set('edited', time());
+            ->find($args['id'])
+            ->set($payload)
+            ->set('edited', time())
+            ->save();
 
-        $model->save();
-        return [$this->nodeName => $model->toArray()];
+        return $this->response([$this->nodeName => $model->toArray()]);
     }
 
     /**
-     * @param string $id
-     * @return array
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     * @return Response
      */
-    public function deleteAction($id)
+    public function deleteAction($request = null, $response = null, $args = [])
     {
         $this->database->createQuery()
-            ->find($id)
+            ->find($args['id'])
             ->delete();
 
-        return ['message' => $this->modelName . ' with id=' . $id . ' has been deleted'];
+        return $this->response(['message' => $this->modelName . ' with id=' . $args['id'] . ' has been deleted']);
     }
 
     /**
@@ -144,20 +162,38 @@ class Controller
     }
 
     /**
+     * @param array $data
+     * @param int $status
+     * @param int $encodingOptions
+     * @return Response
+     */
+    protected function response($data, $status = 200, $encodingOptions = JSON_PRETTY_PRINT)
+    {
+        $response = new Response();
+        return $response->withJson($data, $status, $encodingOptions);
+    }
+
+    /**
+     * @param Request $request
+     * @param string $nodeName
      * @return array
      */
-    public function getPayload()
+    public function getPayload($request = null, $nodeName = null)
     {
-        if (is_null($this->payload)) {
-            try {
-                $this->payload = json_decode(file_get_contents('php://input'), true);
-                //@codeCoverageIgnoreStart
-            } catch (\Exception $e) {
-                $this->payload = [];
-                //@codeCoverageIgnoreEnd
-            }
+        if (!is_null($this->mockedPayload)) {
+            return $nodeName ? $this->mockedPayload[$nodeName] : $this->mockedPayload;
         }
-        return $this->payload;
+
+        $payload = json_decode($request->getBody()->__toString(), true);
+        return $nodeName ? $payload[$nodeName] : $payload;
+    }
+
+    /**
+     *
+     */
+    public function mockPayload($payload)
+    {
+        $this->mockedPayload = $payload;
     }
 
 }

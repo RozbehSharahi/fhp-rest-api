@@ -20,7 +20,7 @@ class FileManager
      */
     public function createDirectory($directory)
     {
-        if (!empty($directory) && $directory != '/') {
+        if (!empty(trim($directory)) && trim($directory) != '/') {
             if (!is_dir($directory) && !is_file($directory)) {
                 mkdir($directory);
             }

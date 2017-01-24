@@ -19,8 +19,13 @@ class Database extends \Lazer\Classes\Database
      *
      * @param string $name Table name
      */
-    public function __construct($name)
+    public function __construct($name = 'system')
     {
+        // Use system table to avoid exception on new instance without table
+        if ($name == 'system' && !$this->hasTable($name)) {
+            $this->createTable('system', ['name' => 'string']);
+        }
+
         Validate::table($name)->exists();
         $this->name = $name;
         $this->setFields();
@@ -59,6 +64,40 @@ class Database extends \Lazer\Classes\Database
     }
 
     /**
+     * Check if table exists
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function hasTable($name)
+    {
+        try {
+            Validate::table($name)->exists();
+        } catch (\Exception $e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create a new table
+     *
+     * @param $name
+     * @param $fields
+     * @throws \Exception
+     * @throws \Lazer\Classes\LazerException
+     * @return $this
+     */
+    public function createTable($name, $fields)
+    {
+        if ($this->hasTable($name)) {
+            throw new \Exception('You tried to create a table that already exists: ' . $name);
+        }
+        $this->create($name, $fields);
+        return $this;
+    }
+
+    /**
      * Setter for one or many properties.
      *
      * Lazer Database is pretty fast in throwing exceptions therefore this was
@@ -86,6 +125,18 @@ class Database extends \Lazer\Classes\Database
         }
         return $this;
     }
+
+    /**
+     * Save method chaining
+     *
+     * @return $this
+     */
+    public function save()
+    {
+        parent::save();
+        return $this;
+    }
+
 
     /**
      * Converts model to an array. Is equivalent to asArray only for

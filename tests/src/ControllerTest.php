@@ -1,9 +1,8 @@
 <?php
 
-use Fhp\Rest\Api;
 use Fhp\Rest\Controller;
 use Fhp\Rest\Database;
-use Slim\App;
+use Psr\Http\Message\ResponseInterface;
 
 class ControllerTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,16 +12,20 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     protected $controller;
 
     /**
+     * @var Database
+     */
+    protected $database;
+
+    /**
      *
      */
     public function setUp()
     {
-        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        }
-        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.config.json');
-        }
+        $this->database = new Database();
+        $this->database->createTable('test-model', [
+            'title' => 'string',
+            'content' => 'string',
+        ]);
     }
 
     /**
@@ -40,17 +43,11 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testIndexAction()
     {
-        $api = new Api(new App());
-
-        $api->createModel('test-model', [
-            'title' => 'string'
-        ]);
-
         $controller = new Controller([
             'modelName' => 'test-model'
         ]);
-
-        $this->assertTrue(is_array($controller->indexAction()));
+        $response = $this->action($controller, 'indexAction');
+        $this->assertTrue(is_array($response));
     }
 
     /**
@@ -58,28 +55,23 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testShowAction()
     {
-
-        $api = new Api(new App());
-
-        $api->createModel('test-model', [
-            'title' => 'string',
-            'edited' => 'integer'
-        ]);
-
         $controller = new Controller([
             'modelName' => 'test-model',
-            'payload' => [
-                'testModel' => [
-                    'title' => 'hello'
-                ]
+        ]);
+
+        $controller->mockPayload([
+            'testModel' => [
+                'title' => 'hello'
             ]
         ]);
 
         $controller->createAction();
 
-        $this->assertEquals(count($controller->indexAction()), 1);
+        $response = $this->action($controller, 'indexAction');
+        $this->assertEquals(count($response['testModels']), 1);
 
-        $this->assertEquals($controller->showAction(1)['testModel']['title'], 'hello');
+        $response = $this->action($controller, 'showAction', 1);
+        $this->assertEquals($response['testModel']['title'], 'hello');
     }
 
     /**
@@ -87,43 +79,30 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateAction()
     {
-
-        $api = new Api(new App());
-
-        $api->createModel('test-model', [
-            'title' => 'string',
-            'edited' => 'integer'
-        ]);
-
         $controller = new Controller([
-            'modelName' => 'test-model',
-            'payload' => [
-                'testModel' => [
-                    'title' => 'test'
-                ]
+            'modelName' => 'test-model'
+        ]);
+        $controller->mockPayload([
+            'testModel' => [
+                'title' => 'test'
             ]
         ]);
 
-        $controller->createAction();
+        $response = $this->action($controller, 'createAction');
+        $this->assertEquals($response['testModel']['title'], 'test');
 
-        $this->assertEquals($controller->showAction(1)['testModel']['title'], 'test');
-
-        $controller = new Controller([
-            'modelName' => 'test-model',
-            'payload' => [
-                'testModel' => [
-                    'title' => 'test2'
-                ]
+        $controller->mockPayload([
+            'testModel' => [
+                'title' => 'test2'
             ]
         ]);
 
-        $controller->updateAction(1);
+        $response = $this->action($controller, 'updateAction', 1);
+        $this->assertEquals($response['testModel']['title'], 'test2');
 
-        $this->assertEquals($controller->showAction(1)['testModel']['title'], 'test2');
-
-        $controller->deleteAction(1);
-
-        $this->assertEquals(count($controller->indexAction()['testModels']), 0);
+        $this->action($controller, 'deleteAction', 1);
+        $response = $this->action($controller, 'indexAction');
+        $this->assertEquals(count($response['testModels']), 0);
     }
 
     /**
@@ -131,20 +110,36 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidPayload()
     {
-        Database::create('test-model', [
-            'title' => 'string'
-        ]);
-
         $controller = new Controller([
             'modelName' => 'test-model',
-            'payload' => '"NO}Valid JSOn"$§'
         ]);
+        $controller->mockPayload(['payload' => '"NO}Valid JSOn"$§']);
 
         try {
-            $controller->createAction();
+            $this->action($controller, 'createAction');
         } catch (\Exception $e) {
             throw new Exception('Error');
         }
+    }
+
+    protected function toArray(ResponseInterface $response)
+    {
+        return json_decode($response->getBody()->__toString(), true);
+    }
+
+    /**
+     * @param Controller $controller
+     * @param string $action
+     * @param array $parameters
+     * @return array
+     */
+    protected function action($controller, $action, $parameters = null)
+    {
+        if (!is_array($parameters)) {
+            /** @var array $parameters default parameter types for an action */
+            $parameters = [null, null, $parameters];
+        }
+        return $this->toArray(call_user_func_array([$controller, $action], $parameters));
     }
 
     /**
@@ -152,12 +147,8 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
-        if (is_file(LAZER_DATA_PATH . '/test-model.data.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.data.json');
-        }
-        if (is_file(LAZER_DATA_PATH . '/test-model.config.json')) {
-            unlink(LAZER_DATA_PATH . '/test-model.config.json');
-        }
+        $this->database->remove('test-model');
+        $this->database->remove('system');
     }
 
 }
