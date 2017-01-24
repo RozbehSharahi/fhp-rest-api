@@ -9,7 +9,7 @@ use ICanBoogie\Inflector;
  *
  * The default controller to be called if no specific controller exists for the model
  *
- * @package LazerRest\Controller
+ * @package LazerRest
  */
 class Controller
 {
