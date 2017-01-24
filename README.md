@@ -1,4 +1,4 @@
-# FHP REST API [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=v1.2.0)](https://travis-ci.org/RozbehSharahi/fhp-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/fhp-rest-api))
+# FHP REST API [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=v1.4.0)](https://travis-ci.org/RozbehSharahi/fhp-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/fhp-rest-api))
 
 ## Inspiration
 
