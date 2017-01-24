@@ -8,4 +8,5 @@
 !/database/.gitkeep
 /coverage
 
-/tests/test-database
+/tests/test-database/*
+!/tests/test-database/.gitkeep
