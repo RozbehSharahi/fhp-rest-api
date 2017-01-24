@@ -105,9 +105,9 @@ class Controller
 
         $model = $this->database->createQuery()
             ->set($payload)
-            ->set('edited', time());
-
-        $model->save();
+            ->set('edited', time())
+            ->save();
+        
         return $this->response([$this->nodeName => $model->toArray()]);
     }
 
