@@ -62,7 +62,7 @@ $api->createModel('post', [
     'title' => 'string',
     'content' => 'string',
     'edited' => 'integer',
-], \My\Own\PostController::class); <-- your class name here
+], \My\Own\PostController::class); //<-- your class name here
 ```
 
 ## Super fast start without Apache
