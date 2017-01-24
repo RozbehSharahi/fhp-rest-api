@@ -3,8 +3,6 @@
 namespace Fhp\Rest;
 
 use ICanBoogie\Inflector;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use Slim\Container;
 use Slim\Http\Request;
@@ -238,12 +236,13 @@ class Api
     /**
      * Forward process to app
      *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
+     * @param Request $request
+     * @param Response $response
+     * @return Response $response
      */
-    public function process(ServerRequestInterface $request, ResponseInterface $response)
+    public function process(Request $request, Response $response)
     {
-        $this->app->process($request, $response);
+        return $this->app->process($request, $response);
     }
 
     /**

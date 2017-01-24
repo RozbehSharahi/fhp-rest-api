@@ -72,7 +72,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $request = $api->getContainer()->get('request')->withUri(new Uri('http', 'localhost', 80, '/testModels'));
         $response = $api->getContainer()->get('response');
 
-        $response = $api->getApp()->process($request, $response);
+        $response = $api->process($request, $response);
 
         $this->assertArrayHasKey('myAdditionalHeader', $response->getHeaders());
         $this->assertArrayHasKey('Content-Type', $response->getHeaders());
@@ -92,7 +92,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
 
         $request = $api->getContainer()->get('request')->withUri(new Uri('http', 'localhost', 80, '/testModels'));
         $response = $api->getContainer()->get('response');
-        $response = $api->getApp()->process($request, $response);
+        $response = $api->process($request, $response);
 
         $this->assertArrayHasKey('test-header', $response->getHeaders());
         $this->assertArrayNotHasKey('Content-Type', $response->getHeaders());
