@@ -1,6 +1,6 @@
 <?php
 
-use LazerRest\FileManager;
+use Fhp\Rest\FileManager;
 
 class FileManagerTest extends \PHPUnit_Framework_TestCase
 {

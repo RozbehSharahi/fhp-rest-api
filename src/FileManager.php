@@ -1,13 +1,13 @@
 <?php
 
-namespace LazerRest;
+namespace Fhp\Rest;
 
 /**
- * Class LazerRest\FileManager
+ * Class Fhp\Rest\FileManager
  *
  * All processes with files and directories should be here
  *
- * @package LazerRest
+ * @package Fhp\Rest
  */
 class FileManager
 {

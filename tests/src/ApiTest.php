@@ -1,7 +1,7 @@
 <?php
 
 use Lazer\Classes\Helpers\Validate;
-use LazerRest\Api;
+use Fhp\Rest\Api;
 use Slim\App;
 use Slim\Http\Headers;
 use Slim\Http\Request;

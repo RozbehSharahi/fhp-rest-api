@@ -1,15 +1,15 @@
 <?php
 
-namespace LazerRest;
+namespace Fhp\Rest;
 
 use ICanBoogie\Inflector;
 
 /**
- * Class LazerRest\Controller
+ * Class Fhp\Rest\Controller
  *
  * The default controller to be called if no specific controller exists for the model
  *
- * @package LazerRest
+ * @package Fhp\Rest
  */
 class Controller
 {

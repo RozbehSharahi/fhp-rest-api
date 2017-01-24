@@ -1,8 +1,8 @@
 {
-    "name": "rozbehsharahi/lazer-rest-api",
+    "name": "rozbehsharahi/fhp-rest-api",
     "description": "Super quick setup of a PHP-REST-API without the use of MySQL, Apache, ...",
-    "keywords": ["rest", "restful", "simple", "json", "flat", "file", "database", "db", "ember"],
-    "homepage": "http://github.com/RozbehSharahi/lazer-rest-api",
+    "keywords": ["rest", "restful", "simple", "json", "flat", "file", "ember"],
+    "homepage": "http://github.com/RozbehSharahi/fhp-rest-api",
     "require": {
         "slim/slim": "^3.7",
         "greg0/lazer-database": "^1.1",
@@ -17,7 +17,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "LazerRest\\": "src/"
+            "Fhp\\Rest\\": "src/"
         }
     }
 }

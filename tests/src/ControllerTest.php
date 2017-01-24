@@ -1,8 +1,8 @@
 <?php
 
-use LazerRest\Api;
-use LazerRest\Controller;
-use LazerRest\Database;
+use Fhp\Rest\Api;
+use Fhp\Rest\Controller;
+use Fhp\Rest\Database;
 use Slim\App;
 
 class ControllerTest extends \PHPUnit_Framework_TestCase

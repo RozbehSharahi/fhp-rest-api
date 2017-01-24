@@ -1,15 +1,15 @@
 <?php
 
-namespace LazerRest;
+namespace Fhp\Rest;
 
 use Lazer\Classes\Helpers\Validate;
 
 /**
- * Class LazerRest\Database
+ * Class Fhp\Rest\Database
  *
  * Builds a wrapper for Lazer Database  to have a little bit better handling
  *
- * @package LazerRest
+ * @package Fhp\Rest
  */
 class Database extends \Lazer\Classes\Database
 {

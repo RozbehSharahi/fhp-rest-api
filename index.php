@@ -1,6 +1,7 @@
 <?php
-use LazerRest\Api;
+use Fhp\Rest\Api;
 use Slim\App;
+
 require_once('vendor/autoload.php');
 define('LAZER_DATA_PATH', __DIR__ . '/database/');
 

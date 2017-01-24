@@ -1,6 +1,6 @@
 <?php
 
-namespace LazerRest;
+namespace Fhp\Rest;
 
 use ICanBoogie\Inflector;
 use Lazer\Classes\Database;
@@ -12,16 +12,16 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 
 /**
- * Class LazerRest\Api
+ * Class Fhp\Rest\Api
  *
  * Api class is a wrapper for slim. Instead of defining routes
  * you define models. Routes will be generated automatically.
  *
  * It also handles the creation of Lazer-Databases for your models.
  *
- * Feel free to extend from this class and change functionallities.
+ * Feel free to extend from this class and change functions.
  *
- * @package LazerRest
+ * @package Fhp\Rest
  */
 class Api
 {
