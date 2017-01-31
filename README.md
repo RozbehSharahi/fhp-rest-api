@@ -1,4 +1,4 @@
-# FHP REST API [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=v1.4.0)](https://travis-ci.org/RozbehSharahi/fhp-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/fhp-rest-api))
+# FHP REST API [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=v2.0.0)](https://travis-ci.org/RozbehSharahi/fhp-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/fhp-rest-api))
 
 ## Inspiration
 
@@ -17,31 +17,97 @@ that saves everything in JSON files and has no need for databases.
 $ composer require rozbehsharahi/fhp-rest-api
 ```
 
-## How To
+## How to
 
 The following __index.php__ is enough to provide PUT, GET, POST, OPTION, DELETE
-routes for your application:
+routes for your application on the `/posts` route:
 
 ```php
+<?php
 use Fhp\Rest\Api;
-use Slim\App;
+use Fhp\Rest\Repository\JsonRepository;
+use Fhp\Rest\Controller\FlexEntityController;
 
 require_once('vendor/autoload.php');
-define('LAZER_DATA_PATH', __DIR__ . '/database/');
 
-$api = new Api(new App);
+// Set json database folder
+JsonRepository::setDirectory(__DIR__ . '/database/');
 
-// Create a model
-$api->createModel('post', [ // <-- use singular here
-    'title' => 'string',
-    'content' => 'string',
-]);
-
-// Run
-$api->run();
+// Api call here
+Api::create()
+    ->activateEntity('post', FlexEntityController::class) // <-- use singular entity name
+    ->run();
 ```
 
-### Defining custom model-controllers
+That's it!
+
+### How to use entity classes
+
+(Still experimental)
+
+Using this way of configuring the FHP REST API is still very experimental. For
+ instance you have to define fhp property type annotations, though they
+ don't have any impact on the way a property is saved yet.
+
+ ```php
+ <?php
+ use Fhp\Rest\Api;
+ use Fhp\Rest\Repository\JsonRepository;
+
+ require_once('vendor/autoload.php');
+
+ // Set json database folder
+ JsonRepository::setDirectory(__DIR__ . '/database/');
+
+ // Api call here
+ Api::create()
+     ->activateEntity(My\Example\Page::class)
+     ->run();
+ ```
+
+Your entity class should look like this:
+
+```php
+<?php
+namespace My\Example;
+
+/**
+ * My Entity class
+ *
+ * @class Page
+ */
+class Page
+{
+
+    /**
+     * @Fhp\Rest\PropertyType\StringType
+     */
+    protected $id;
+
+    /**
+     * @Fhp\Rest\PropertyType\StringType
+     */
+    protected $url;
+
+    public function getId() { return $this->id; }
+
+    public function setId($id) { $this->id = $id; return $this; }
+
+    public function getUrl() { return $this->url; }
+
+    public function setUrl($url) { $this->url = $url; return $this; }
+}
+```
+
+At the moment it does not make any difference which property type you will use. But
+ it is a good preparation for next releases. You will still have to annotate with
+ one of the following annotations:
+
+ * `@Fhp\Rest\PropertyType\StringType`
+ * `@Fhp\Rest\PropertyType\BooleanType`
+ * `@Fhp\Rest\PropertyType\IntegerType`
+
+### Defining custom entity-controllers
 
 You may also define your own controllers to handle model-requests. Just pass
 your controller's class name as the third parameter to `$api->createModel`.
@@ -49,20 +115,19 @@ your controller's class name as the third parameter to `$api->createModel`.
 Please extend `Fhp\Rest\Controller` and
  feel free to override the basic actions:
 
- * `public function indexAction() {}`
- * `public function showAction($id) {}`
- * `public function updateAction($id) {}`
- * `public function deleteAction($id) {}`
- * `public function createAction($id) {}`
+ * `public function indexAction($request, $response, $args) {}`
+ * `public function showAction($request, $response, $args) {}`
+ * `public function updateAction($request, $response, $args) {}`
+ * `public function deleteAction($request, $response, $args) {}`
+ * `public function createAction($request, $response, $args) {}`
 
-by calling `$api->createModel` like following:
+by calling `$api->activateEntity` like following:
 
 ```php
-$api->createModel('post', [
-    'title' => 'string',
-    'content' => 'string',
-    'edited' => 'integer',
-], \My\Own\PostController::class); //<-- your class name here
+$api->activateEntity(
+    \My\Entity\Post::class,
+    \My\Own\PostController::class
+);
 ```
 
 ## Super fast start without Apache
@@ -95,17 +160,9 @@ FHP REST API has a set of default-headers that are defined in `Fhp\Rest\Api`.
  a security issue depending on the project.
 
 Please make sure to configure your own header-settings
-when going to production. You may set those inside your constructor parameters:
+when going to production.
 
-```php
-$api = new Api(new App, [
-    'headers' => [
-        'Access-Control-Allow-Origin' => 'http://my-specific-doain.com'
-    ]
-]);
-```
-
-You may also use the setter:
+You may do this by following:
 
 ```php
 $api->setHeaders([
@@ -116,5 +173,5 @@ $api->setHeaders([
 
 ## Todos and issues
 
-* Better types handling
+* PropertyTypes
 * Refactoring

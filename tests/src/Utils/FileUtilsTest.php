@@ -1,8 +1,8 @@
 <?php
 
-use Fhp\Rest\FileManager;
+use Fhp\Rest\Utils\FileUtils;
 
-class FileManagerTest extends \PHPUnit_Framework_TestCase
+class FileUtilsTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
@@ -11,14 +11,15 @@ class FileManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testDangerousDirectorySettings($directory)
     {
-        $fileManager = new FileManager();
+        $fileManager = new FileUtils();
         $fileManager->createDirectory($directory);
     }
 
     /**
      * @return array
      */
-    public function dangerousDirectoryProvider() {
+    public function dangerousDirectoryProvider()
+    {
         return [
             [''],
             ['/'],

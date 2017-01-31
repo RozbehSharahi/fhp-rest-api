@@ -5,8 +5,10 @@
     "homepage": "http://github.com/RozbehSharahi/fhp-rest-api",
     "require": {
         "slim/slim": "^3.7",
-        "greg0/lazer-database": "^1.1",
-        "icanboogie/inflector": "^1.4"
+        "icanboogie/inflector": "^1.4",
+        "doctrine/common": "^2.6",
+        "mikey179/vfsStream": "^1.6",
+        "phpunit/phpunit": "5.5.*"
     },
     "license": "MIT",
     "authors": [
@@ -17,7 +19,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "Fhp\\Rest\\": "src/"
+            "Fhp\\Rest\\": "src/",
+            "Rs\\": "example/src/"
         }
     }
 }
