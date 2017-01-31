@@ -165,24 +165,6 @@ class EntityInterpreter
     }
 
     /**
-     * @return Inflector
-     */
-    public function getInflector()
-    {
-        return $this->inflector;
-    }
-
-    /**
-     * @param Inflector $inflector
-     * @return $this
-     */
-    public function setInflector($inflector)
-    {
-        $this->inflector = $inflector;
-        return $this;
-    }
-
-    /**
      * @return PropertyInterpreter|null
      */
     public function getPropertyInterpreter()
