@@ -1,15 +1,17 @@
 # FHP REST API [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=v2.0.0)](https://travis-ci.org/RozbehSharahi/fhp-rest-api) (Master [![Build Status](https://travis-ci.org/RozbehSharahi/fhp-rest-api.svg?branch=master)](https://travis-ci.org/RozbehSharahi/fhp-rest-api))
 
-## Inspiration
+## Description
 
-FHP REST API was inspired by the project `greg0/lazer-database` which
- is a PHP library that provides the use of JSON files
- as a database.
+FHP REST API provides an easy way to setup a __JSON FILE based
+REST API__.
 
-## What is does
+There are no dependencies to MySQL or other databases. All files will be
+ stored as json files by default. Still you may also integrate your own
+ way of saving data, by integrating your own __controllers__, __entites__ and
+ __normalizers__.
 
-With `rozbehsharahi/fhp-rest-api` you can setup a simple REST API
-that saves everything in JSON files and has no need for databases.
+I'm trying really hard to make this very flexible and at the same easy
+ to understand, i hope you enjoy working with this.
 
 ## Installation
 
@@ -45,9 +47,10 @@ That's it!
 
 (Still experimental)
 
-Using this way of configuring the FHP REST API is still very experimental. For
- instance you have to define fhp property type annotations, though they
- don't have any impact on the way a property is saved yet.
+This way of using FHP REST API is still very experimental, so please
+ used this with caution. For instance you have to define fhp property
+ type annotations, though they don't have any impact on the way a property
+ is saved yet.
 
  ```php
  <?php

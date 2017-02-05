@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -26,8 +25,10 @@
 namespace Fhp\Rest;
 
 use Fhp\Rest\Controller\EntityController;
+use Fhp\Rest\Controller\FlexEntityController;
 use Fhp\Rest\PropertyType\BooleanType;
 use Fhp\Rest\PropertyType\StringType;
+use Fhp\Rest\Repository\JsonRepository;
 use ICanBoogie\Inflector;
 use Slim\App;
 use Slim\Container;
@@ -85,7 +86,8 @@ class Api
 
     /**
      * Creates and api with default configuration
-     * You may use constructor your self by passing your own instances.
+     *
+     * You may use the normal constructor for passing your own instances.
      *
      * @return Api
      */
@@ -113,7 +115,7 @@ class Api
     }
 
     /**
-     * Create a route + lazer table ...
+     * Create routes and controller for given entity
      *
      * @param string $entityName
      * @param string $controllerName
@@ -123,7 +125,7 @@ class Api
     public function activateEntity($entityName, $controllerName = EntityController::class, $nodeName = null)
     {
         $nodeName = $nodeName ?: $this->getEntityNodeName($entityName);
-        $controller = new $controllerName($entityName, $nodeName);
+        $controller = $this->createController($controllerName, $entityName, $nodeName);
 
         return $this
             ->createRoutes($nodeName, $controller);
@@ -227,6 +229,51 @@ class Api
         $entityPath = '/' . $this->inflector->pluralize(lcfirst($this->inflector->camelize($nodeName)));
         $this->app->delete($entityPath . '/{id}', [$controller, 'deleteAction']);
         return $this;
+    }
+
+    /**
+     * Creates and prepares the controller for api
+     *
+     * Controllers shall be as flexible as possible. Therefore i created this
+     * initiator which will setup a controller based on exiting setters. You
+     * may use your own controller and go without all these setters or just
+     * those you need.
+     *
+     * @param string $controllerName
+     * @param string|null $entityName
+     * @param string|null $nodeName
+     * @return EntityController|FlexEntityController|object
+     */
+    protected function createController($controllerName = EntityController::class, $entityName = null, $nodeName = null)
+    {
+        /** @var object|EntityController|FlexEntityController $controller */
+        $controller = new $controllerName;
+
+        // Set entity name if possible
+        if (is_callable([$controller, 'setEntityName'])) {
+            $controller->setEntityName($entityName);
+        }
+
+        // Set node name if possible
+        if (is_callable([$controller, 'setNodeName'])) {
+            $controller->setNodeName($nodeName);
+        }
+
+        // Set request if possible
+        if (is_callable([$controller, 'setRequest'])) {
+            $controller->setRequest($this->getContainer()->get('request'));
+        }
+
+        // Set response if possible
+        if (is_callable([$controller, 'setResponse'])) {
+            $controller->setResponse($this->getContainer()->get('response'));
+        }
+
+        if (is_callable([$controller, 'setJsonRepository'])) {
+            $controller->setJsonRepository(new JsonRepository($entityName));
+        }
+
+        return $controller;
     }
 
     /**

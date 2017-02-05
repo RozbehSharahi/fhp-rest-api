@@ -8,7 +8,7 @@
         "icanboogie/inflector": "^1.4",
         "doctrine/common": "^2.6",
         "mikey179/vfsStream": "^1.6",
-        "phpunit/phpunit": "5.5.*"
+        "phpunit/phpunit": "5.7.*"
     },
     "license": "MIT",
     "authors": [

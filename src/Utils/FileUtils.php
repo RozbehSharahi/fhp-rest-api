@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -36,7 +35,7 @@ class FileUtils
 {
 
     /**
-     * Creates the database folder if it does not exist
+     * Creates the database folder, in case it does not exist
      *
      * @param string $directory
      * @throws \Exception

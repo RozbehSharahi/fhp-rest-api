@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -27,7 +26,7 @@ namespace Fhp\Rest\Controller;
 
 use Fhp\Rest\Normalizer\FlexEntityNormalizer;
 use Fhp\Rest\Repository\JsonRepository;
-use ICanBoogie\Inflector;
+use Fhp\Rest\Response;
 
 /**
  * Class Fhp\Rest\Controller\FlexEntityController
@@ -40,25 +39,60 @@ class FlexEntityController extends EntityController
 {
 
     /**
-     * FlexEntityController constructor.
-     *
      * @param string $entityName
      * @param string $nodeName
-     * @param JsonRepository $repository
-     * @param Inflector $inflector
-     * @param null $normalizer
-     * @throws \Exception
+     * @param null $repository
+     * @param null $request
+     * @param null $response
+     * @return $this
      */
-    public function __construct(
-        $entityName,
-        $nodeName = null,
-        $repository = null,
-        $inflector = null,
-        $normalizer = null
-    ) {
-        $normalizer = new FlexEntityNormalizer();
-        $repository = new JsonRepository($nodeName, null, null, null, $normalizer);
-        parent::__construct($entityName, $nodeName, $repository, $inflector, $normalizer);
+    static public function create($entityName, $nodeName, $repository = null, $request = null, $response = null)
+    {
+        $repository = new JsonRepository($nodeName, null, null, null, new FlexEntityNormalizer());
+        return parent::create(
+            $entityName,
+            $nodeName,
+            $repository,
+            $request,
+            $response
+        );
     }
+
+    /**
+     * Deactivation of response setting
+     *
+     * Entity controller must not allow any other response types apart from
+     * Fhp\Rest\Response. Therefore we throw away all responses apart from
+     * this responses that are instances of Fhp\Rest\Response
+     *
+     * @param Response $response
+     * @return $this
+     */
+    public function setResponse($response)
+    {
+        if (!$response instanceof Response) {
+            $this->response = Response::create(new FlexEntityNormalizer(), $this->nodeName);
+        } else {
+            $this->response = $response;
+        }
+        return $this;
+    }
+
+    /**
+     * Set json repository
+     *
+     * setJsonRepository will automatically add \Fhp\Rest\FlexEntityNormalizer to the
+     * given $jsonRepository.
+     *
+     * @param JsonRepository $jsonRepository
+     * @return $this
+     */
+    public function setJsonRepository(JsonRepository $jsonRepository)
+    {
+        $jsonRepository->setNormalizer(new FlexEntityNormalizer());
+        $this->repository = $jsonRepository;
+        return $this;
+    }
+
 
 }

@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -25,11 +24,13 @@
 
 namespace Fhp\Rest\Controller;
 
+use Doctrine\Common\Persistence\ObjectRepository;
+use Fhp\Rest\Convention\ControllerTrait;
 use Fhp\Rest\Normalizer\EntityNormalizer;
 use Fhp\Rest\Repository\JsonRepository;
-use ICanBoogie\Inflector;
-use Slim\Http\Request;
-use Slim\Http\Response;
+use Fhp\Rest\Response;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Fhp\Rest\Controller\EntityController
@@ -40,151 +41,170 @@ use Slim\Http\Response;
  */
 class EntityController
 {
-
     /**
-     * @var string
-     */
-    protected $entityName;
-
-    /**
-     * @var string
-     */
-    protected $nodeName;
-
-    /**
-     * @var Inflector
-     */
-    protected $inflector;
-
-    /**
-     * @var JsonRepository
-     */
-    protected $repository;
-
-    /**
-     * @var EntityNormalizer
-     */
-    protected $normalizer;
-
-    /**
-     * This is for testing to mock a payload
+     * Controller has request and response
      *
+     * Due to this request and response object will be set to controller on creation
+     * in Fhp\Rest\Api
+     */
+    use ControllerTrait;
+
+    /**
      * @var array
      */
     protected $mockedPayload;
+
+    /**
+     * @param string $entityName
+     * @param string $nodeName
+     * @param ObjectRepository $repository
+     * @param RequestInterface $request
+     * @param ResponseInterface|Response $response
+     * @return $this
+     */
+    static public function create($entityName, $nodeName, $repository = null, $request = null, $response = null)
+    {
+        $repository = $repository ?: new JsonRepository($entityName);
+        return new self(
+            $entityName,
+            $nodeName,
+            $repository,
+            $request,
+            $response
+        );
+    }
 
     /**
      * EntityController constructor.
      *
      * @param string $entityName
      * @param string $nodeName
-     * @param JsonRepository $repository
-     * @param Inflector $inflector
-     * @param null $normalizer
-     * @throws \Exception
+     * @param object $repository
+     * @param RequestInterface $request
+     * @param ResponseInterface|Response $response
      */
     public function __construct(
-        $entityName,
+        $entityName = null,
         $nodeName = null,
         $repository = null,
-        $inflector = null,
-        $normalizer = null
+        $request = null,
+        $response = null
     ) {
-        $this->entityName = $entityName ?: $this->entityName;
-        $this->nodeName = $nodeName ?: $this->nodeName;
-        $this->repository = $repository ?: $this->repository ?: new JsonRepository($this->entityName);
-        $this->inflector = $inflector ?: $this->inflector ?: Inflector::get();
-        $this->normalizer = $normalizer ?: $this->normalizer ?: new EntityNormalizer();
-
-        // Asserts
-        $this->assert('ModelName must not be empty in ' . __METHOD__, !empty($this->entityName));
+        $this->entityName = $entityName;
+        $this->nodeName = $nodeName;
+        $this->repository = $repository;
+        $this->request = $request;
+        $this->response = $response;
     }
 
     /**
-     * Default index action
-     *
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return Response
+     * @return ResponseInterface|Response
      */
-    public function indexAction($request = null, $response = null, $args = [])
+    public function indexAction()
     {
-        return $this->responseEntities($this->repository->findAll());
+        return $this->response->withEntities($this->repository->findAll());
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return Response
+     * @return ResponseInterface|Response
+     * @throws \Exception
      */
-    public function showAction($request = null, $response = null, $args = [])
+    public function showAction()
     {
+        $args = func_get_arg(2);
+
         $this->assert('Entity with id ' . $args['id'] . ' does not exist.', $this->repository->has($args['id']));
-        return $this->responseEntity($this->repository->find($args['id']));
+
+        return $this->response->withEntity($this->repository->find($args['id']));
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return Response
+     * @return ResponseInterface|Response
      * @throws \Exception
      */
-    public function createAction($request = null, $response = null, $args = [])
+    public function createAction()
     {
-        $payload = $this->getPayload($request, $this->nodeName);
+        $payload = $this->getPayload();
 
         $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($payload) && is_array($payload));
 
-        // Create new entity
-        $entity = $this->normalizer->denormalize($payload, $this->entityName);
-
-        // Save entity
+        // Create new entity and save it
+        $entity = $this->repository->getNormalizer()->denormalize($payload, $this->entityName);
         $this->repository->save($entity);
         $this->repository->persist();
 
-        return $this->responseEntity($entity);
+        return $this->response->withEntity($entity);
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return Response
+     * @return ResponseInterface|Response
      * @throws \Exception
      */
-    public function updateAction($request = null, $response = null, $args = [])
+    public function updateAction()
     {
+        $args = func_get_arg(2);
+        $payload = $this->getPayload();
+
+        $this->assert('No id has been given to find ' . $this->entityName, !empty($args['id']));
+        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($payload) && is_array($payload));
+        $this->assert('Entity with id ' . $args['id'] . ' not found.', $this->repository->has($args['id']));
+
+        // Fill entity and save it
         $entity = $this->repository->find($args['id']);
-        $payload = $this->getPayload($request, $this->nodeName);
-
-        $this->assert('Payload must be valid and not empty for ' . __METHOD__, !empty($payload) && is_array($payload));
-        $this->assert('Entity with id ' . $args['id'] . ' not found.', !empty($entity));
-
-        // Fill entity
-        $this->normalizer->denormalize($payload, $entity);
-
-        // Save entity
+        $this->repository->getNormalizer()->denormalize($payload, $entity);
         $this->repository->save($entity);
         $this->repository->persist();
 
-        return $this->responseEntity($entity);
+        return $this->response->withEntity($entity);
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
-     * @param array $args
-     * @return Response
+     * @return ResponseInterface
      */
-    public function deleteAction($request = null, $response = null, $args = [])
+    public function deleteAction()
     {
+        $args = func_get_arg(2);
+
+        // Delete entity
         $entity = $this->repository->find($args['id']);
         $this->repository->delete($entity);
         $this->repository->persist();
-        return $this->responseJson(['message' => $this->entityName . ' with id=' . $args['id'] . ' has been deleted']);
+
+        return $this->response->withJson(['message' => $this->entityName . ' with id=' . $args['id'] . ' has been deleted']);
+    }
+
+    /**
+     * Deactivation of response setting
+     *
+     * Entity controller must not allow any other response types apart from
+     * Fhp\Rest\Response. Therefore we throw away all responses apart from
+     * this responses that are instances of Fhp\Rest\Response
+     *
+     * @param Response $response
+     * @return $this
+     */
+    public function setResponse($response)
+    {
+        if (!$response instanceof Response) {
+            $this->response = Response::create(new EntityNormalizer(), $this->nodeName);
+        } else {
+            $this->response = $response;
+        }
+        return $this;
+    }
+
+    /**
+     * Get body content of the request as array
+     *
+     * In case a mockedPayload by unit tests is set, this will be
+     * the result of this getter.
+     *
+     * @return array
+     */
+    public function getPayload()
+    {
+        return $this->mockedPayload[$this->nodeName]
+            ?: json_decode($this->request->getBody()->__toString(), true)[$this->nodeName];
     }
 
     /**
@@ -199,66 +219,6 @@ class EntityController
         if (!$condition) {
             throw new \Exception($message);
         }
-    }
-
-    /**
-     * @param object $entity
-     * @param integer $status
-     * @param integer $encodingOptions
-     * @return Response
-     */
-    protected function responseEntity($entity, $status = 200, $encodingOptions = JSON_PRETTY_PRINT)
-    {
-        $response = new Response();
-        $normalizedEntity = $this->normalizer->normalize($entity);
-        return $response->withJson([$this->nodeName => $normalizedEntity], $status, $encodingOptions);
-    }
-
-    /**
-     * @param array $entities
-     * @param integer $status
-     * @param integer $encodingOptions
-     * @return Response
-     */
-    protected function responseEntities($entities, $status = 200, $encodingOptions = JSON_PRETTY_PRINT)
-    {
-        $response = new Response();
-        $nodeName = $this->inflector->pluralize($this->nodeName);
-        $normalizedEntities = [];
-
-        // Normalize entities
-        foreach ($entities as $entity) {
-            $normalizedEntities[] = $this->normalizer->normalize($entity);
-        }
-
-        return $response->withJson([$nodeName => $normalizedEntities], $status, $encodingOptions);
-    }
-
-    /**
-     * @param array $data
-     * @param int $status
-     * @param int $encodingOptions
-     * @return Response
-     */
-    protected function responseJson($data, $status = 200, $encodingOptions = JSON_PRETTY_PRINT)
-    {
-        $response = new Response();
-        return $response->withJson($data, $status, $encodingOptions);
-    }
-
-    /**
-     * @param Request $request
-     * @param string $nodeName
-     * @return array
-     */
-    public function getPayload($request = null, $nodeName = null)
-    {
-        if (!is_null($this->mockedPayload)) {
-            return $nodeName ? $this->mockedPayload[$nodeName] : $this->mockedPayload;
-        }
-
-        $payload = json_decode($request->getBody()->__toString(), true);
-        return $nodeName ? $payload[$nodeName] : $payload;
     }
 
     /**

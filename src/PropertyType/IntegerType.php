@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *

@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -28,6 +27,7 @@ namespace Fhp\Rest\Repository;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Fhp\Rest\Encoder\JsonEncoder;
 use Fhp\Rest\Normalizer\EntityNormalizer;
+use Fhp\Rest\Normalizer\FlexEntityNormalizer;
 use Fhp\Rest\Utils\ArrayUtils;
 use Fhp\Rest\Utils\FileUtils;
 use ICanBoogie\Inflector;
@@ -35,7 +35,8 @@ use ICanBoogie\Inflector;
 /**
  * Class Fhp\Rest\Repository\JsonRepository
  *
- * No documentation was created yet
+ * I will add a description to this. Maybe i will also move this class to an
+ * own git repository, since it is quite cool and can be used for many projects.
  *
  * @author Rozbeh Chiryai Sharahi <rozbeh.sharahi@primeit.eu>
  * @package Fhp\Rest\Repository
@@ -382,11 +383,21 @@ class JsonRepository implements ObjectRepository
     }
 
     /**
-     * @return EntityNormalizer
+     * @return EntityNormalizer|FlexEntityNormalizer|object
      */
     public function getNormalizer()
     {
         return $this->normalizer;
+    }
+
+    /**
+     * @param EntityNormalizer|FlexEntityNormalizer|object $normalizer
+     * @return $this
+     */
+    public function setNormalizer($normalizer)
+    {
+        $this->normalizer = $normalizer;
+        return $this;
     }
 
     /**

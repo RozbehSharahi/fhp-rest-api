@@ -1,7 +1,6 @@
 <?php
 /**
- * FHP REST API is a package for fast creation of REST APIs based on
- * JSON files.
+ * FHP REST API
  *
  * ------------------------------------------------------------------------
  *
@@ -28,7 +27,7 @@ namespace Fhp\Rest\Utils;
 /**
  * Class Fhp\Rest\Utils\ArrayUtils
  *
- * No documentation was created yet
+ * Some helper utilities to work with arrays
  *
  * @author Rozbeh Chiryai Sharahi <rozbeh.sharahi@primeit.eu>
  * @package Fhp\Rest\Utils
