@@ -48,7 +48,7 @@ class FlexEntityController extends EntityController
      */
     static public function create($entityName, $nodeName, $repository = null, $request = null, $response = null)
     {
-        $repository = new JsonRepository($nodeName, null, null, null, new FlexEntityNormalizer());
+        $repository = $repository ?: JsonRepository::create($nodeName, new FlexEntityNormalizer);
         return parent::create(
             $entityName,
             $nodeName,

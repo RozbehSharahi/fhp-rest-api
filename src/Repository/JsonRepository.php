@@ -52,7 +52,7 @@ class JsonRepository implements ObjectRepository
     /**
      * @var string
      */
-    protected $className;
+    protected $entityName;
 
     /**
      * @var string
@@ -105,33 +105,62 @@ class JsonRepository implements ObjectRepository
     protected $lastCreatedId;
 
     /**
+     * Create new json repository
+     *
+     * You may use this static method for easier creation of a new instance.
+     * The created repository will get default configurations.
+     *
+     * @param $entityName
+     * @param EntityNormalizer|FlexEntityNormalizer|object $normalizer
+     * @param JsonEncoder|object $encoder
+     * @return JsonRepository
+     */
+    static public function create($entityName, $normalizer = null, $encoder = null)
+    {
+        $directory = self::$directory;
+        $normalizer = $normalizer ?: new EntityNormalizer();
+        $encoder = $encoder ?: new JsonEncoder();
+
+        // Instance with default configuration
+        return new self(
+            $entityName,
+            $directory,
+            $normalizer,
+            $encoder,
+            Inflector::get(),
+            new ArrayUtils(),
+            new FileUtils()
+        );
+    }
+
+    /**
      * JsonRepository constructor.
      *
-     * @param string $className
+     * @param string $entityName
      * @param string $tableDirectoryPath
-     * @param Inflector $inflector
-     * @param JsonEncoder $encoder
      * @param EntityNormalizer $normalizer
+     * @param JsonEncoder $encoder
+     * @param Inflector $inflector
      * @param ArrayUtils $arrayUtils
      * @param FileUtils $fileUtils
      * @throws \Exception
      */
     public function __construct(
-        $className,
+        $entityName,
         $tableDirectoryPath = null,
-        $inflector = null,
-        $encoder = null,
         $normalizer = null,
+        $encoder = null,
+        $inflector = null,
         $arrayUtils = null,
         $fileUtils = null
     ) {
-        $this->className = $className;
+        $this->entityName = $entityName;
         $this->tableDirectoryPath = self::$directory ?: $tableDirectoryPath;
-        $this->inflector = $inflector ?: Inflector::get();
-        $this->encoder = $encoder ?: new JsonEncoder();
-        $this->normalizer = $normalizer ?: new EntityNormalizer();
-        $this->arrayUtils = $arrayUtils ?: new ArrayUtils();
-        $this->fileUtils = $fileUtils ?: new FileUtils();
+        $this->normalizer = $normalizer;
+        $this->encoder = $encoder;
+        $this->inflector = $inflector;
+        $this->arrayUtils = $arrayUtils;
+        $this->fileUtils = $fileUtils;
 
         // Assert tableDirectoryPath missing
         $this->assertValidConfiguration();
@@ -147,7 +176,7 @@ class JsonRepository implements ObjectRepository
      */
     public function getShortName()
     {
-        return str_replace('/', '-', $this->inflector->hyphenate($this->getClassName()));
+        return str_replace('/', '-', $this->inflector->hyphenate($this->getEntityName()));
     }
 
     /**
@@ -196,7 +225,7 @@ class JsonRepository implements ObjectRepository
 
             // In case data exists
             if ($row) {
-                $entity = $this->normalizer->denormalize($row, $this->getClassName());
+                $entity = $this->normalizer->denormalize($row, $this->getEntityName());
                 $this->pushToStore($id, $entity);
             }
 
@@ -280,13 +309,15 @@ class JsonRepository implements ObjectRepository
     }
 
     /**
-     * Returns the class name of the object managed by the repository.
+     * Get entity name
+     *
+     * Returns the entity name of the object managed by the repository.
      *
      * @return string
      */
-    public function getClassName()
+    public function getEntityName()
     {
-        return $this->className;
+        return $this->entityName;
     }
 
     /**
@@ -405,8 +436,8 @@ class JsonRepository implements ObjectRepository
      */
     protected function assertValidConfiguration()
     {
-        $this->assert('You must set a valid $className and $tableDirectoryPath',
-            !empty($this->className) && !empty($this->tableDirectoryPath));
+        $this->assert('You must set a valid $entityName and $tableDirectoryPath',
+            !empty($this->entityName) && !empty($this->tableDirectoryPath));
     }
 
     /**

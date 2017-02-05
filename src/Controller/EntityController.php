@@ -64,7 +64,7 @@ class EntityController
      */
     static public function create($entityName, $nodeName, $repository = null, $request = null, $response = null)
     {
-        $repository = $repository ?: new JsonRepository($entityName);
+        $repository = $repository ?: JsonRepository::create($entityName);
         return new self(
             $entityName,
             $nodeName,

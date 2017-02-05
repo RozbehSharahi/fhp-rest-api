@@ -269,8 +269,9 @@ class Api
             $controller->setResponse($this->getContainer()->get('response'));
         }
 
+        // Set json repository if possible
         if (is_callable([$controller, 'setJsonRepository'])) {
-            $controller->setJsonRepository(new JsonRepository($entityName));
+            $controller->setJsonRepository(JsonRepository::create($entityName));
         }
 
         return $controller;
