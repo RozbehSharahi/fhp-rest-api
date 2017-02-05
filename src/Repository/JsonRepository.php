@@ -321,6 +321,16 @@ class JsonRepository implements ObjectRepository
     }
 
     /**
+     * Alias for getEntityName
+     *
+     * @return string
+     */
+    public function getClassName()
+    {
+        return $this->getEntityName();
+    }
+
+    /**
      * @param object $entity
      * @return $this
      * @throws \Exception
